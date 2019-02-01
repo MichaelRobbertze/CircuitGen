@@ -66,92 +66,115 @@ public class DBHelper extends SQLiteOpenHelper {
         return newArray;
     }
 
+    public int[] addOnInt(int[] array, int newInt)
+    {
+        int[] newArray = new int[array.length + 1];
+        for(int i=0; i < array.length; i++)
+        {
+            newArray[i] = array[i];
+        }
+        newArray[array.length] = newInt;
+        return newArray;
+    }
+
     public String newCircuit(boolean isArms, boolean isBackAndShoulders, boolean isCore, boolean isLegs, boolean isOther, int length)
     {
         SQLiteDatabase db = this.getWritableDatabase();
-        //String totalCount = "SELECT count(*) FROM " + Table_Name;
-        String CounterString = "SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like ";
-        String RequestQuery = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like ";
-        String[] CatagoryPointer = new String[1];
+
         boolean first = true;
+        String[] requiredQueries = new String[1];
+        int[] AvailableOptions = new int[1];
+
         if(isArms && first) {
-            CounterString += "'Arms'";
-            RequestQuery += "'Arms'";
-            CatagoryPointer[0] = "Arms";
             first = false;
+            requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Arms' ORDER BY RANDOM() LIMIT 1";
+            Cursor armCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Arms' ORDER BY RANDOM() LIMIT 1", null);
+            armCurs.moveToFirst();
+            AvailableOptions[0] = armCurs.getInt(0);
         }
         if(isBackAndShoulders && first) {
-            CounterString += "'BackAndShoulders'";
-            RequestQuery += "'BackAndShoulders'";
-            CatagoryPointer[0] = "BackAndShoulders";
             first = false;
+            requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders' ORDER BY RANDOM() LIMIT 1";
+            Cursor bsCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders' ORDER BY RANDOM() LIMIT 1", null);
+            bsCurs.moveToFirst();
+            AvailableOptions[0] = bsCurs.getInt(0);
         }
         if(isCore && first) {
-            CounterString += "'Core'";
-            RequestQuery += "'Core'";
-            CatagoryPointer[0] = "Core";
             first = false;
+            requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core' ORDER BY RANDOM() LIMIT 1";
+            Cursor cCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core' ORDER BY RANDOM() LIMIT 1", null);
+            cCurs.moveToFirst();
+            AvailableOptions[0] = cCurs.getInt(0);
         }
         if(isLegs && first) {
-            CounterString += "'Legs'";
-            RequestQuery += "'Legs'";
-            CatagoryPointer[0] = "Legs";
             first = false;
+            requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs' ORDER BY RANDOM() LIMIT 1";
+            Cursor lCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs' ORDER BY RANDOM() LIMIT 1", null);
+            lCurs.moveToFirst();
+            AvailableOptions[0] = lCurs.getInt(0);
         }
         if(isOther && first) {
-            CounterString += "'Other'";
-            RequestQuery += "'Other'";
-            CatagoryPointer[0] = "Other";
             first = false;
+            requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Other' ORDER BY RANDOM() LIMIT 1";
+            Cursor oCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Other' ORDER BY RANDOM() LIMIT 1", null);
+            oCurs.moveToFirst();
+            AvailableOptions[0] = oCurs.getInt(0);
         }
         if(isBackAndShoulders && !first) {
-            CounterString += " OR " + Col_5 +" Like 'BackAndShoulders'";
-            RequestQuery += " OR " + Col_5 +" Like 'BackAndShoulders'";
-            CatagoryPointer = addOn(CatagoryPointer, "BackAndShoulders");
+            requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders' ORDER BY RANDOM() LIMIT 1");
+            Cursor bsCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders' ORDER BY RANDOM() LIMIT 1", null);
+            bsCurs.moveToFirst();
+            AvailableOptions = addOnInt(AvailableOptions,bsCurs.getInt(0));
         }
         if(isCore && !first) {
-            CounterString += " OR " + Col_5 +" Like 'Core'";
-            RequestQuery += " OR " + Col_5 +" Like 'Core'";
-            CatagoryPointer = addOn(CatagoryPointer, "Core");
+            requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core' ORDER BY RANDOM() LIMIT 1");
+            Cursor cCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core' ORDER BY RANDOM() LIMIT 1", null);
+            cCurs.moveToFirst();
+            AvailableOptions = addOnInt(AvailableOptions,cCurs.getInt(0));
         }
         if(isLegs && !first) {
-            CounterString += " OR " + Col_5 +" Like 'Legs'";
-            RequestQuery += " OR " + Col_5 +" Like 'Legs'";
-            CatagoryPointer = addOn(CatagoryPointer, "Legs");
+            requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs' ORDER BY RANDOM() LIMIT 1");
+            Cursor lCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs' ORDER BY RANDOM() LIMIT 1", null);
+            lCurs.moveToFirst();
+            AvailableOptions = addOnInt(AvailableOptions,lCurs.getInt(0));
         }
         if(isOther && !first) {
-            CounterString += " OR " + Col_5 +" Like 'Other'";
-            RequestQuery += " OR " + Col_5 +" Like 'Other'";
-            CatagoryPointer = addOn(CatagoryPointer, "Other");
+            requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Other' ORDER BY RANDOM() LIMIT 1");
+            Cursor oCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Other' ORDER BY RANDOM() LIMIT 1", null);
+            oCurs.moveToFirst();
+            AvailableOptions = addOnInt(AvailableOptions,oCurs.getInt(0));
         }
 
-        RequestQuery += " ORDER BY RANDOM() LIMIT 1";
-        Cursor myCursor = db.rawQuery(CounterString, null);
-        myCursor.moveToFirst();
-        int AvailableNumber = myCursor.getInt(0);
-        if(AvailableNumber < length)
-        {
-            return "Insufficient Matching Exercises, you wanted " + length + " but only " + AvailableNumber + " Recorded Exercises match your requirements \nSorry";
-        }
         StringBuffer exRes = new StringBuffer();
         String[] duplicateFinder = new String[length];
 
-        for(int i=0; i<length; i++)
+        for(int i=0; i < length; i++)
         {
-            String reqCat = CatagoryPointer[i % CatagoryPointer.length];
-            Cursor Results = db.rawQuery(RequestQuery, null);
-            Results.moveToFirst();
-            String Name = Results.getString(1);
-            String[] Options = {Results.getString(2),Results.getString(3)};
-            String Cat = Results.getString(4);
-            Random rand = new Random();
-            int option = rand.nextInt(2);
-            if(Arrays.asList(duplicateFinder).contains(Name) || !Cat.equalsIgnoreCase(reqCat))
+            Cursor res = db.rawQuery(requiredQueries[i%requiredQueries.length], null);
+            res.moveToFirst();
+            String Name = res.getString(1);
+            String[] Options = {res.getString(2),res.getString(3)};
+            String Cat = res.getString(4);
+            if(Arrays.asList(duplicateFinder).contains(Name))
+            {
                 i--;
-            else {
+            }
+            else if(AvailableOptions[i%AvailableOptions.length] > 0 || Cat.equalsIgnoreCase("Other"))
+            {
                 int num = i+1;
+                Random rand = new Random();
+                int option = rand.nextInt(2);
                 exRes.append(num + ": " + Options[option] + " " + Name + "\n\n");
                 duplicateFinder[i] = Name;
+                AvailableOptions[i%AvailableOptions.length]--;
+            }
+            else if(AvailableOptions[i%AvailableOptions.length] < 1 && !Cat.equalsIgnoreCase("Other"))
+            {
+                return "Insufficient Exercise Options \nTry Again with a Smaller Length";
+            }
+            else
+            {
+                return "Some Logical Error Occurred";
             }
         }
         return exRes.toString();

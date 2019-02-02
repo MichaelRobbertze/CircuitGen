@@ -92,57 +92,71 @@ public class DBHelper extends SQLiteOpenHelper {
             armCurs.moveToFirst();
             AvailableOptions[0] = armCurs.getInt(0);
         }
-        if(isBackAndShoulders && first) {
-            first = false;
-            requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders' ORDER BY RANDOM() LIMIT 1";
-            Cursor bsCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders' ORDER BY RANDOM() LIMIT 1", null);
-            bsCurs.moveToFirst();
-            AvailableOptions[0] = bsCurs.getInt(0);
+        if(isBackAndShoulders) {
+            if(first)
+            {
+                first = false;
+                requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders' ORDER BY RANDOM() LIMIT 1";
+                Cursor bsCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders' ORDER BY RANDOM() LIMIT 1", null);
+                bsCurs.moveToFirst();
+                AvailableOptions[0] = bsCurs.getInt(0);
+            }
+            else
+            {
+                requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders' ORDER BY RANDOM() LIMIT 1");
+                Cursor bsCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders' ORDER BY RANDOM() LIMIT 1", null);
+                bsCurs.moveToFirst();
+                AvailableOptions = addOnInt(AvailableOptions,bsCurs.getInt(0));
+            }
         }
-        if(isCore && first) {
-            first = false;
-            requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core' ORDER BY RANDOM() LIMIT 1";
-            Cursor cCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core' ORDER BY RANDOM() LIMIT 1", null);
-            cCurs.moveToFirst();
-            AvailableOptions[0] = cCurs.getInt(0);
+        if(isCore) {
+            if(first)
+            {
+                first = false;
+                requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core' ORDER BY RANDOM() LIMIT 1";
+                Cursor cCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core' ORDER BY RANDOM() LIMIT 1", null);
+                cCurs.moveToFirst();
+                AvailableOptions[0] = cCurs.getInt(0);
+            }
+            else{
+                requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core' ORDER BY RANDOM() LIMIT 1");
+                Cursor cCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core' ORDER BY RANDOM() LIMIT 1", null);
+                cCurs.moveToFirst();
+                AvailableOptions = addOnInt(AvailableOptions,cCurs.getInt(0));
+            }
         }
-        if(isLegs && first) {
-            first = false;
-            requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs' ORDER BY RANDOM() LIMIT 1";
-            Cursor lCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs' ORDER BY RANDOM() LIMIT 1", null);
-            lCurs.moveToFirst();
-            AvailableOptions[0] = lCurs.getInt(0);
+        if(isLegs) {
+            if(first)
+            {
+                first = false;
+                requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs' ORDER BY RANDOM() LIMIT 1";
+                Cursor lCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs' ORDER BY RANDOM() LIMIT 1", null);
+                lCurs.moveToFirst();
+                AvailableOptions[0] = lCurs.getInt(0);
+            }
+            else
+            {
+                requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs' ORDER BY RANDOM() LIMIT 1");
+                Cursor lCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs' ORDER BY RANDOM() LIMIT 1", null);
+                lCurs.moveToFirst();
+                AvailableOptions = addOnInt(AvailableOptions,lCurs.getInt(0));
+            }
         }
-        if(isOther && first) {
-            first = false;
-            requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Other' ORDER BY RANDOM() LIMIT 1";
-            Cursor oCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Other' ORDER BY RANDOM() LIMIT 1", null);
-            oCurs.moveToFirst();
-            AvailableOptions[0] = oCurs.getInt(0);
-        }
-        if(isBackAndShoulders && !first) {
-            requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders' ORDER BY RANDOM() LIMIT 1");
-            Cursor bsCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders' ORDER BY RANDOM() LIMIT 1", null);
-            bsCurs.moveToFirst();
-            AvailableOptions = addOnInt(AvailableOptions,bsCurs.getInt(0));
-        }
-        if(isCore && !first) {
-            requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core' ORDER BY RANDOM() LIMIT 1");
-            Cursor cCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core' ORDER BY RANDOM() LIMIT 1", null);
-            cCurs.moveToFirst();
-            AvailableOptions = addOnInt(AvailableOptions,cCurs.getInt(0));
-        }
-        if(isLegs && !first) {
-            requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs' ORDER BY RANDOM() LIMIT 1");
-            Cursor lCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs' ORDER BY RANDOM() LIMIT 1", null);
-            lCurs.moveToFirst();
-            AvailableOptions = addOnInt(AvailableOptions,lCurs.getInt(0));
-        }
-        if(isOther && !first) {
-            requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Other' ORDER BY RANDOM() LIMIT 1");
-            Cursor oCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Other' ORDER BY RANDOM() LIMIT 1", null);
-            oCurs.moveToFirst();
-            AvailableOptions = addOnInt(AvailableOptions,oCurs.getInt(0));
+        if(isOther) {
+            if(first){
+                first = false;
+                requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Other' ORDER BY RANDOM() LIMIT 1";
+                Cursor oCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Other' ORDER BY RANDOM() LIMIT 1", null);
+                oCurs.moveToFirst();
+                AvailableOptions[0] = oCurs.getInt(0);
+            }
+            else{
+                requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Other' ORDER BY RANDOM() LIMIT 1");
+                Cursor oCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Other' ORDER BY RANDOM() LIMIT 1", null);
+                oCurs.moveToFirst();
+                AvailableOptions = addOnInt(AvailableOptions,oCurs.getInt(0));
+            }
+
         }
 
         StringBuffer exRes = new StringBuffer();
@@ -155,11 +169,16 @@ public class DBHelper extends SQLiteOpenHelper {
             String Name = res.getString(1);
             String[] Options = {res.getString(2),res.getString(3)};
             String Cat = res.getString(4);
-            if(Arrays.asList(duplicateFinder).contains(Name))
+            if(Arrays.asList(duplicateFinder).contains(Name) && AvailableOptions[i%AvailableOptions.length] > 0)
             {
                 i--;
             }
-            else if(AvailableOptions[i%AvailableOptions.length] > 0 || Cat.equalsIgnoreCase("Other"))
+            else if(AvailableOptions[i%AvailableOptions.length] < 1)
+            {
+                exRes.append("Insufficient Exercises to fulfill your request, All Available options have been shown");
+                return exRes.toString();
+            }
+            else if(Cat.equalsIgnoreCase("Other") || AvailableOptions[i%AvailableOptions.length] > 0)
             {
                 int num = i+1;
                 Random rand = new Random();

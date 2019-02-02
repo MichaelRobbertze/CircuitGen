@@ -10,7 +10,7 @@ import android.widget.Button;
 
 public class OptionsActivity extends AppCompatActivity {
 
-    Button btnGenerate, btnView;
+    Button btnGenerate, btnView, btnSaved;
     DBHelper myDb;
 
     //Move btnGenerate listener into its own method, tidy it up.
@@ -23,6 +23,7 @@ public class OptionsActivity extends AppCompatActivity {
 
         btnGenerate = (Button) findViewById(R.id.btnGenerate);
         btnView = (Button) findViewById(R.id.btnViewEx);
+        btnSaved = (Button) findViewById(R.id.btnSaved);
         btnGenerate.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
@@ -33,6 +34,20 @@ public class OptionsActivity extends AppCompatActivity {
         );
 
         viewAll();
+        savedCircuits();
+    }
+
+    public void savedCircuits()
+    {
+        btnSaved.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(OptionsActivity.this, ListOfSaved.class);
+                        startActivity(intent);
+                    }
+                }
+        );
     }
 
     public void showCircGen()

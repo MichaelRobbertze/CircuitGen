@@ -13,6 +13,8 @@ public class DBHelper extends SQLiteOpenHelper {
 
     //Variables defining the Database
     public static final String DB_Name = "Exercises.db";
+
+    //Variables defining the table of stored exercises
     public static final String Table_Name = "Exercise_Data";
     public static final String Col_1 = "ID";
     public static final String Col_2 = "Name";
@@ -20,21 +22,52 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String Col_4 = "Option_2";
     public static final String Col_5 = "Category";
 
+    //Variables defining the table of saved circuits
+    public static final String Save_Table = "SavedCircuits";
+    public static final String Save_ID = "ID";
+    public static final String Save_Name = "Name";
+    public static final String Saved_Circuit = "Circuit_Data";
+
     //DB Constructor
     public DBHelper(Context context)
     {
-        super(context, DB_Name, null, 4);
+        super(context, DB_Name, null, 7);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table " + Table_Name + " (ID Integer primary key autoincrement, Name text, Option_1 text, Option_2 text, Category text)");
+        db.execSQL("create table if not exists " + Save_Table + " (ID Integer primary key autoincrement, Name text, Circuit_Data text)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
         db.execSQL("drop table if exists " + Table_Name);
+//        db.execSQL("drop table if exists " + Save_Table);
         onCreate(db);
+    }
+
+    public Cursor CircuitData(String Name)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("select " + Saved_Circuit + " from " + Save_Table + " where " + Save_Name + " like '" + Name + "'",null);
+        return res;
+    }
+
+    public Cursor SavedCircuitNames()
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("select " +Save_Name+ " from " + Save_Table, null);
+        return res;
+    }
+
+    public void saveCircuit(String Name, String CircuitData)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Save_Name, Name);
+        contentValues.put(Saved_Circuit, CircuitData);
+        db.insert(Save_Table, null, contentValues);
     }
 
     public void insertData(String Name, String Option_1, String Option_2, String Category)

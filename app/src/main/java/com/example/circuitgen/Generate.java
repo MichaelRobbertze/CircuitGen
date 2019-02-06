@@ -13,7 +13,7 @@ import android.widget.TextView;
 public class Generate extends AppCompatActivity {
     DBHelper myDb;
     EditText txtLength;
-    CheckBox chkArms, chkBackAndShoulders, chkCore, chkLegs, chkOther;
+    CheckBox chkArms, chkBackAndShoulders, chkCore, chkLegs, chkOther, chkEasy, chkHard;
     Button btnGo;
 
     @Override
@@ -29,6 +29,8 @@ public class Generate extends AppCompatActivity {
         chkCore = (CheckBox) findViewById(R.id.chkCore);
         chkLegs = (CheckBox) findViewById(R.id.chkLegs);
         chkOther = (CheckBox) findViewById(R.id.chkOther);
+        chkEasy = (CheckBox) findViewById(R.id.chkMakeEasy);
+        chkHard = (CheckBox) findViewById(R.id.chkMakeHard);
         btnGo = (Button) findViewById(R.id.btnGo);
 
         btnGo.setOnClickListener(
@@ -51,6 +53,8 @@ public class Generate extends AppCompatActivity {
         boolean isCore = false;
         boolean isLegs = false;
         boolean isOther = false;
+        boolean isEasy = false;
+        boolean isHard = false;
 
         if(chkArms.isChecked())
             isArms = true;
@@ -62,8 +66,12 @@ public class Generate extends AppCompatActivity {
             isLegs = true;
         if(chkOther.isChecked())
             isOther = true;
+        if(chkEasy.isChecked())
+            isEasy = true;
+        if(chkHard.isChecked())
+            isHard = true;
 
-        return myDb.newCircuit(isArms, isBackAndShoulders, isCore, isLegs, isOther, length);
+        return myDb.newCircuit(isArms, isBackAndShoulders, isCore, isLegs, isOther, length, isEasy, isHard);
 
     }
 }

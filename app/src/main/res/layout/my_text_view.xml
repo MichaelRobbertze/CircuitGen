@@ -5,4 +5,5 @@
     android:onClick="onNameClick"
     android:clickable="true"
     android:text="testing"
+    android:padding="20dp"
     android:textSize="24sp" />

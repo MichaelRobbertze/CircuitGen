@@ -14,7 +14,7 @@ public class ListOfSaved extends AppCompatActivity {
     private RecyclerView reView;
     private RecyclerView.Adapter myAdapter;
     private RecyclerView.LayoutManager myLayoutManager;
-    String[] testString = {"test123","test456","test789","test123","test456","test789","test123","test456","test789","test123","test456","test789"};
+    String[] testString = {""};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +44,7 @@ public class ListOfSaved extends AppCompatActivity {
         Cursor res = myDb.SavedCircuitNames();
         if(res.getCount() == 0)
         {
-            showMessage("Error", "No Data Found");
+            showMessage("Lazy!", "No Circuits Saved Yet");
             return testString;
         }
         String[] resultString = new String[0];

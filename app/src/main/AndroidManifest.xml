@@ -9,7 +9,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ListOfSaved"></activity>
+        <activity android:name=".ExerciseDrillDown"></activity>
+        <activity android:name=".ListOfSaved" />
         <activity android:name=".CircuitDisplay" />
         <activity android:name=".Generate" />
         <activity android:name=".OptionsActivity" />

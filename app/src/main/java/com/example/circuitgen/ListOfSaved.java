@@ -25,7 +25,7 @@ public class ListOfSaved extends AppCompatActivity {
         reView = (RecyclerView) findViewById(R.id.lstSaved);
         myLayoutManager = new LinearLayoutManager(this);
         reView.setLayoutManager(myLayoutManager);
-        myAdapter = new MyAdapter(SavedData());
+        myAdapter = new SavedCircuitAdapter(SavedData());
         reView.setAdapter(myAdapter);
     }
 

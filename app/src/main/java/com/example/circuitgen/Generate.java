@@ -38,6 +38,7 @@ public class Generate extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(getApplicationContext(), CircuitDisplay.class);
+//                        intent.putExtra("CustomCircuit", GenerateCirc());
                         intent.putExtra("CustomCircuit", GenerateCirc());
                         startActivity(intent);
                     }
@@ -45,7 +46,7 @@ public class Generate extends AppCompatActivity {
         );
     }
 
-    public String GenerateCirc()
+    public CircuitHolder GenerateCirc()
     {
         int length = Integer.parseInt(txtLength.getText().toString());
         boolean isArms = false;

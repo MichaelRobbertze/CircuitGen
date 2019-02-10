@@ -27,19 +27,21 @@ public class DBHelper extends SQLiteOpenHelper {
     //Variables defining the table of saved circuits
     public static final String Save_Table = "SavedCircuits";
     public static final String Save_ID = "ID";
-    public static final String Save_Name = "Name";
-    public static final String Saved_Circuit = "Circuit_Data";
+    public static final String Save_Exercise = "Exercise";
+    public static final String Next_Index = "Next_Index";
+    public static final String isHead = "isHead";
+    public static final String Save_Name = "circuitName";
 
     //DB Constructor
     public DBHelper(Context context)
     {
-        super(context, DB_Name, null, 18);
+        super(context, DB_Name, null, 26);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table " + Table_Name + " (ID Integer primary key autoincrement, Name text, Option_1 text, Option_2 text, Category text, isEasy text, Description text)");
-        db.execSQL("create table if not exists " + Save_Table + " (ID Integer primary key autoincrement, Name text, Circuit_Data text)");
+        db.execSQL("create table if not exists " + Save_Table + " (ID Integer primary key autoincrement, Exercise text, Next_Index Integer, isHead text, circuitName text)");
     }
 
     @Override
@@ -65,28 +67,112 @@ public class DBHelper extends SQLiteOpenHelper {
         return myExercise;
     }
 
-    public Cursor CircuitData(String Name)
+    public void saveCircuit(CircuitHolder myCircuit, String isFirst, int num, String SaveName)
     {
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("select " + Saved_Circuit + " from " + Save_Table + " where " + Save_Name + " like '" + Name + "'",null);
-        return res;
+        saveCircuit(myCircuit,isFirst,num,db,SaveName);
+    }
+    public boolean saveCircuit(CircuitHolder myCircuit, String isFirst, int num, SQLiteDatabase db, String SaveName)
+    {
+        try{
+            if(myCircuit != null)
+            {
+                String myExercise = num + ": " + myCircuit.repCount + " (" + myCircuit.name + ")";
+
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(Save_Exercise, myExercise);
+                if(myCircuit.next != null)
+                {
+                    Cursor idCursor = db.rawQuery("SELECT " + Save_ID + " FROM " + Save_Table, null);
+                    if(idCursor.getCount() == 0)
+                        contentValues.put(Next_Index, 2);
+                    else {
+                        idCursor.moveToLast();
+                        int nextID = idCursor.getInt(0) + 2;
+                        contentValues.put(Next_Index, nextID);
+                    }
+                    idCursor.close();
+                }
+                else{
+                    contentValues.put(Next_Index, 0);
+                }
+                contentValues.put(isHead, isFirst);
+                contentValues.put(Save_Name, SaveName);
+                db.insert(Save_Table, null, contentValues);
+                saveCircuit(myCircuit.next, "No", num+1, db, SaveName);
+
+            }
+            return true;
+        }
+        catch(Exception e)
+        {
+            return false;
+        }
     }
 
+    public CircuitHolder getSavedCircuit(String Name)
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor savedCursor = db.rawQuery("SELECT * FROM " + Save_Table + " WHERE " + Save_Name + " Like '" + Name + "'",null);
+        savedCursor.moveToFirst();
+        int circLength = savedCursor.getCount();
+        String[] myCircEntries = new String[circLength];
+        for(int i =0; i<circLength; i++)
+        {
+            myCircEntries[i] = savedCursor.getString(1);
+            savedCursor.moveToNext();
+        }
+        CircuitHolder mySavedCircuit = CreateLinkedList(null,myCircEntries,0);
+        return mySavedCircuit;
+    }
+
+//    public Cursor CircuitData(String Name)
+//    {
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        Cursor res = db.rawQuery("select " + Saved_Circuit + " from " + Save_Table + " where " + Save_Name + " like '" + Name + "'",null);
+//        return res;
+//    }
+
+    //recursive method initially passed an empty circuitholder and a string array of all the list entries
+    public CircuitHolder CreateLinkedList(CircuitHolder myCircuit, String[] listofstuff, int pos)
+    {
+        if(pos < listofstuff.length - 1)
+        {
+            myCircuit = new CircuitHolder(listofstuff[pos], CreateLinkedList(myCircuit, listofstuff, pos+1), 1);
+        }
+        else if(pos == listofstuff.length - 1)
+        {
+            myCircuit = new CircuitHolder(listofstuff[pos], 1);
+        }
+        return myCircuit;
+    }
+//
     public Cursor SavedCircuitNames()
     {
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("select " +Save_Name+ " from " + Save_Table, null);
+        Cursor res = db.rawQuery("select distinct " +Save_Name+ " from " + Save_Table, null);
         return res;
     }
 
-    public void saveCircuit(String Name, String CircuitData)
-    {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(Save_Name, Name);
-        contentValues.put(Saved_Circuit, CircuitData);
-        db.insert(Save_Table, null, contentValues);
-    }
+//    public void saveCircuit(CircuitHolder myCircuit)
+//    {
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        ContentValues contentValues;
+//        boolean isfirst = true;
+//        while(myCircuit.next != null)
+//        {
+//            contentValues = new ContentValues();
+//            contentValues.put(Save_Name, myCircuit.name);
+//            if(isFirst)
+//            {
+//                contentValues.put(Next_Save, CircuitData);
+//            }
+//
+//            contentValues.put(isFirst, CircuitData);
+//        }
+//
+//        db.insert(Save_Table, null, contentValues);
+//    }
 
     public void insertData(String Name, String Option_1, String Option_2, String Category, String isEasy, String Description)
     {
@@ -308,41 +394,42 @@ public class DBHelper extends SQLiteOpenHelper {
             insertData("Pull-ups on Rope with Vertical Grip","12","10","Arms","Yes","Squeeze your scapula together at the top of the pull-up");
 
             //Back and Shoulders Exercises (35 Total)
-            insertData("Arch Hold","1 Minute","1 Minute 10 Seconds","BackAndShoulders","Yes","test");
-            insertData("Arch Rocks","40","45","BackAndShoulders","Yes","test");
-            insertData("Handstand Hold","1 Minute","2 x 40 Seconds","BackAndShoulders","Yes","test");
-            insertData("Single Rail Handstand Hold","45 Seconds","2 x 30 Seconds","BackAndShoulders","No","test");
-            insertData("Tuck Planche Hold","2 x 10 Seconds","3 x 7 Seconds","BackAndShoulders","Yes","test");
-            insertData("Straddle Planche Hold","3 x 3 Seconds","2 x 5 Seconds","BackAndShoulders","No","test");
-            insertData("Planche Push-ups","12","10","BackAndShoulders","Yes","test");
-            insertData("Planche Presses","10","5 Holding Each Planche for 3 Seconds","BackAndShoulders","No","test");
-            insertData("Presses","5","6","BackAndShoulders","No","test");
-            insertData("Standing Presses","6","8","BackAndShoulders","No","test");
-            insertData("Endo Roll to Handstand","8","6","BackAndShoulders","No","test");
-            insertData("Back Uprise Handstand","10","8","BackAndShoulders","No","test");
-            insertData("Front Uprise Swing Handstand","10","8","BackAndShoulders","No","test");
-            insertData("Swing to Handstand","10","12","BackAndShoulders","Yes","test");
-            insertData("A-Pivots","6","8","BackAndShoulders","No","test");
-            insertData("Wall Angels","20","25","BackAndShoulders","Yes","test");
-            insertData("Floor Angles","12","10","BackAndShoulders","Yes","test");
-            insertData("Front Lever Pulls","6","5","BackAndShoulders","Yes","test");
-            insertData("Back Lever Pulls","6","5","BackAndShoulders","Yes","test");
-            insertData("Chest Raises","15","20","BackAndShoulders","Yes","test");
-            insertData("Heel Drives","30","25","BackAndShoulders","Yes","test");
-            insertData("Stunted Pump Swings to Planche","10","8","BackAndShoulders","No","test");
-            insertData("Cast to Handstand","10","8","BackAndShoulders","No","test");
-            insertData("Flies on Pommel with Weights","12","15","BackAndShoulders","Yes","test");
-            insertData("Jack-Knife Push-Ups on Rings","12","10","BackAndShoulders","Yes","test");
-            insertData("Flies on Rings","6","8","BackAndShoulders","Yes","test");
-            insertData("Crescent Push-ups on Rings","6","8","BackAndShoulders","Yes","test");
-            insertData("Hanging Upside-Down Shrugs","20","25","BackAndShoulders","Yes","test");
-            insertData("Planche Rockers","10","12","BackAndShoulders","Yes","test");
-            insertData("Rings Handstand Hold","40 Seconds","2 x 25 Seconds","BackAndShoulders","No","test");
-            insertData("One Arm Handstand Hold","25 Seconds Each Arm","20 Seconds Each Arm","BackAndShoulders","No","test");
-            insertData("Pommel Sliders","4 Lengths [1 of each style]","4 Lengths [1 of each style]","BackAndShoulders","Yes","test");
-            insertData("Weight Plate Lifts","15","12","BackAndShoulders","Yes","test");
-            insertData("Maltese Presses on Red Blocks","10","8","BackAndShoulders","Yes","test");
-            insertData("Maltese Lifts with Weights","10","12","BackAndShoulders","Yes","test");
+            insertData("Arch Hold","1 Minute","1 Minute 10 Seconds","BackAndShoulders","Yes","Lying on your stomach keep your arms straight up, like how superman flies\n\nKeep your arms straight and hold your hands as far off the floor as you can for the duration");
+            insertData("Arch Rocks","40","45","BackAndShoulders","Yes","Keep your arms straight forward and your hards up off the floor\n\nKeep your feet off the floor and rock back and forth\n\nKeep your rocks small and controlled");
+            insertData("Handstand Hold","1 Minute","2 x 40 Seconds","BackAndShoulders","Yes","Your entire body, from your hands to your feet, should be a straight line\n\nLook at the ground but trying to keep the head as forward as possible.\nSo it's like you're rolling your eyes up\n\nDo it against a wall, with a spotter, or simply on your own\n\nYou can use parallets or do it on flat ground.\nParallets will be better for your wrists");
+            insertData("Single Rail Handstand Hold","45 Seconds","2 x 30 Seconds","BackAndShoulders","No","Your entire body, from your hands to your feet, should be a straight line\n\nLook at the rail but trying to keep the head as forward as possible.\nSo it's like you're rolling your eyes up\n\nDo it with a spotter helping you\n\nKeep your hands in an overgrip position");
+            insertData("Tuck Planche Hold","2 x 10 Seconds","3 x 7 Seconds","BackAndShoulders","Yes","Keep your arms straight\n\nKeep your knees by your chest\n\nDon't lift your butt too high, it should be level with your shoulders");
+            insertData("Straddle Planche Hold","3 x 3 Seconds","2 x 5 Seconds","BackAndShoulders","No","Keep your arms and legs straight\n\nOpen your legs as wide as you are able to, the wider you can get your legs the easier the hold will be\n\nMay or may not need a spotter");
+            insertData("Planche Push-ups","12","10","BackAndShoulders","Yes","Swing the legs up until your body is flat first, then push your arms straight up to a planche\n\nCan be done straddled (Legs open and straight, easier)\nCan be done straight bodied (Legs straight and together, harder)");
+            insertData("Planche Presses","10","5 Holding Each Planche for 3 Seconds","BackAndShoulders","No","Definitely need a spotter for this one\n\nKeep the arms and body straight as you can, only rotate at the shoulders");
+            insertData("Presses","5","6","BackAndShoulders","No","Lift your butt all the way up first, only then start to lift your legs up until in a handstand");
+            insertData("Standing Presses","6","8","BackAndShoulders","No","Can be done straddled (Legs straight and together, easier)\nCan be done piked (Legs together and straight, harder)\n\nStart with your hands on the floor close to your feet and your legs straight\n\nLift your butt all the way up first, only then start to lift your legs up until in a handstand");
+            insertData("Endo Roll to Handstand","8","6","BackAndShoulders","No","The earlier you get your hands on the floor between your legs the easier this move is\n\nKep your legs straight and try to keep your feet off the floor the entire move");
+            insertData("Back Uprise Handstand","10","8","BackAndShoulders","No","Try swing the feet all the way up first, so your body's vertical, then push-up to handstand to finish the move\nThen reverse the process\n\nTry and use the momentum from your swing to get your feet all the way up");
+            insertData("Front Uprise Swing Handstand","10","8","BackAndShoulders","No","Push the butt and the shoulders forward as you uprise, this will ensure that you have enough swing to get to handstand");
+            insertData("Swing to Handstand","10","12","BackAndShoulders","Yes","Keep the arms straight as well as your body\n\nFeet must go as high as they can in the front swing as well\n\nEnsure before trying this move that your swings are strong as well as your handstands\n\nHave a spotter if you are inexperienced");
+            insertData("A-Pivots","6","8","BackAndShoulders","No","Start pivoting as you reach the top of the swing, try not to stop in handstand before turning as this creates more opportunity for falling over");
+            insertData("Wall Angels","20","25","BackAndShoulders","Yes","Forearms should be vertical and elbows should be as far back as you can get them\n\nExtend all the way up and go all the way down");
+            insertData("Floor Angles","12","10","BackAndShoulders","Yes","Use any kind of pole (weights bar, broom stick, random pipe you found) it must just be long enough so you can grip it widely\n\nKeep your hands as far up off the ground as you can\n\nBring the bar all the way to toughing your traps and extend it all the way out until your arms are straight");
+            insertData("Front Lever Pulls","6","5","BackAndShoulders","Yes","Use a spotter for your legs\n\nKeep the body straight from shoulders to feet, do not bend your hips and drop your butt down");
+            insertData("Back Lever Pulls","6","5","BackAndShoulders","Yes","Use a spotter\n\nKeep your body straight from shoulders to feet");
+            insertData("Chest Raises","15","12","BackAndShoulders","Yes","Keep hands behind head and lift until your body is flat, do not go all the way up to an arched position");
+            insertData("Heel Drives","30","25","BackAndShoulders","Yes","Kick the legs up fast until your body is flat, do not kick them up above your head into an arched position\n\nKick them up fast, then slowly and controlled lower them down again");
+            insertData("Stunted Pump Swings to Planche","10","8","BackAndShoulders","No","Stunted = Stopping your legs from swinging in front of you, this forces you to use strength as it takes away momentum from a swing\n\nEnsure you have good Dip swings already as well as a strong planche");
+            insertData("Cast to Handstand","10","8","BackAndShoulders","No","Keep the arms and body straight\n\nBest to have a spotter catch you once you reach handstand\n\nPush away from the bar and land on your feet on the floor unless you are strong enough to control the motion and reverse the cast back onto the bar from handstand");
+            insertData("Flies on Pommel with Weights","12","15","BackAndShoulders","Yes","Keep the arms straight\n\nsqueeze the scapula together at the top and lower slowly");
+            insertData("Jack-Knife Push-Ups on Rings","12","10","BackAndShoulders","Yes","Can be done on the knees instead of the feet to make it easier\n\nKeep your core tight and the rings close together as you do the move\n\nOnly go until you're flat, dont go any lower");
+            insertData("Flies on Rings","6","8","BackAndShoulders","Yes","Can be done on your knees to make it easier\n\nA spotter helping is always nice\n\nArms straight out next to you and back up\n\nTry have straight arms however this puts major strain on the elbows and as such I do these with my arms bent ever so slightly");
+            insertData("Crescent Push-ups on Rings","6","8","BackAndShoulders","Yes","Aim to keep your body flat while moving your hands from out in front of you all the way back next to your hips with your arms straight\n\nit is hard to get them all the way back there, so just get them as far back as you can and push back up\n\nArms are straight this entire move");
+            insertData("Hanging Upside-Down Shrugs","20","25","BackAndShoulders","Yes","Keep the body as straight as you can and lift your body up and down by shrugging your shoulders\n\nSomeone can stand above you and spot your feet if you have too much trouble balancing while doing it");
+            insertData("Planche Rockers","10","12","BackAndShoulders","Yes","Keep the body straight as well as the arms\n\nHave the spotter let you forward as far as you can manage and then pull you back, talk to the spotter so they know where your limit is");
+            insertData("Reverse Planche Rockers","10","12","BackAndShoulders","Yes","Keep the body straight as well as the arms\n\nHave the spotter let you back as far as you can manage and then pull you back, talk to the spotter so they know where your limit is");
+            insertData("Rings Handstand Hold","40 Seconds","2 x 25 Seconds","BackAndShoulders","No","Keep the rings close together and turned out (Palms facing each other)\n\nYou can keep your feet on the rings cable but try keep your shoulders off the cable/straps");
+            insertData("One Arm Handstand Hold","25 Seconds Each Arm","20 Seconds Each Arm","BackAndShoulders","No","Do it against a wall or with a spotter\n\nBest done using a parallet/handle so as to not hurt the wrist\n\nKeep the other arm by your side");
+            insertData("Pommel Sliders","4 Lengths [1 of each style]","4 Lengths [1 of each style]","BackAndShoulders","Yes","Keep the body straight as possible and walk the arms forward with your feet on a slider\n\nIf you don't have sliders then I really don't know");
+            insertData("Weight Plate Lifts","15","12","BackAndShoulders","Yes","Keep the arms straight and isolate the movement to the shoulders while keeping your core tight\n\n10-15kg is a good weight, 20kg is possible");
+            insertData("Maltese Presses on Red Blocks","10","8","BackAndShoulders","Yes","Ensure you have a spotter so you can move through the entire motion\n\nkeep the body straight and lift yourself up by pushing with your arms\n\nDon't stick your butt out to help you get up, that's what the spotter's for");
+            insertData("Maltese Lifts with Weights","10","12","BackAndShoulders","Yes","Keep your core tight and legs and arms straight\n\nLower weights down next to your side and then bring them back up and together above your legs\n\nTry have straight arms however this puts major strain on the elbows and as such I do these with my arms bent ever so slightly");
 
             //Core Exercises (25 Total)
             insertData("Windscreen Wipers","24 [12 / side]","20 [10 / side]","Core","No","test");

@@ -38,7 +38,7 @@ public class Generate extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(getApplicationContext(), CircuitDisplay.class);
-//                        intent.putExtra("CustomCircuit", GenerateCirc());
+//                        intent.putExtra("SavedCircuit", false);
                         intent.putExtra("CustomCircuit", GenerateCirc());
                         startActivity(intent);
                     }
@@ -73,6 +73,5 @@ public class Generate extends AppCompatActivity {
             isHard = true;
 
         return myDb.newCircuit(isArms, isBackAndShoulders, isCore, isLegs, isOther, length, isEasy, isHard);
-
     }
 }

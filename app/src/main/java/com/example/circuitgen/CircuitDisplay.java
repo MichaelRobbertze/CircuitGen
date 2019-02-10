@@ -3,6 +3,7 @@ package com.example.circuitgen;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,6 +15,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Stack;
@@ -22,6 +25,7 @@ public class CircuitDisplay extends AppCompatActivity {
     Button btnSave;
     DBHelper myDb;
     CircuitHolder Circuit;
+    String saveName;
     private RecyclerView reView;
     private RecyclerView.Adapter myAdapter;
     private RecyclerView.LayoutManager myLayoutManager;
@@ -31,11 +35,12 @@ public class CircuitDisplay extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_circuit_display);
         btnSave = findViewById(R.id.btnSave);
-
         Intent intent = getIntent();
-//        Circuit = intent.getStringExtra("CustomCircuit");
         Circuit = intent.getParcelableExtra("CustomCircuit");
+//        boolean isSaved = intent.getBooleanExtra("SavedCircuit",false);
         myDb = new DBHelper(this);
+        if(Circuit.isSaved == 1)
+            btnSave.setVisibility(View.GONE);
 
 
         reView = (RecyclerView) findViewById(R.id.lstCircuitResult);
@@ -43,6 +48,7 @@ public class CircuitDisplay extends AppCompatActivity {
         reView.setLayoutManager(myLayoutManager);
         myAdapter = new CircuitDisplayAdapter(CircuitStringDisplay(Circuit));
         reView.setAdapter(myAdapter);
+        SaveCircuit();
     }
 
     public void SaveCircuit()
@@ -51,14 +57,22 @@ public class CircuitDisplay extends AppCompatActivity {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
+//                        SharedPreferences.Editor prefsEdit = mPrefs.edit();
+//                        Gson gson = new Gson();
+//                        String json = gson.toJson(Circuit);
+//                        prefsEdit.putString("MyCircuit",json);
+//                        prefsEdit.commit();
+
+//                        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+                        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM HH:mm");
                         LocalDateTime now = LocalDateTime.now();
                         String DefaultName = dtf.format(now);
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(CircuitDisplay.this);
-                        builder.setTitle("Name");
+                        builder.setTitle("Save-Name");
 
-                        //input setup
+//                        input setup
                         final EditText txtSaveName = new EditText(CircuitDisplay.this);
                         //type of input expected
                         txtSaveName.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -69,7 +83,10 @@ public class CircuitDisplay extends AppCompatActivity {
                         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-//                                myDB.saveCircuit(txtSaveName.getText().toString(), Circuit);
+//                                create a method in dbhelper class that takes a circuitHolder as input and saves it to the db
+                                saveName = txtSaveName.getText().toString();
+                                myDb.saveCircuit(Circuit,"Yes",1,saveName);
+//                                myDb.saveCircuit(Circuit,"Yes",1,txtSaveName.getText().toString());
                                 Toast.makeText(CircuitDisplay.this, "Circuit Saved", Toast.LENGTH_LONG).show();
                             }
                         });
@@ -96,7 +113,10 @@ public class CircuitDisplay extends AppCompatActivity {
             return myCircArr;
 
         do {
-            formattedExercise = num + ": " + myCirc.repCount + " (" + myCirc.name + ")";
+            if(myCirc.repCount == null)
+                formattedExercise = myCirc.name;
+            else
+                formattedExercise = num + ": " + myCirc.repCount + " (" + myCirc.name + ")";
             myCircArr = DBHelper.addOn(myCircArr, formattedExercise);
             myCirc = myCirc.next;
             num++;

@@ -1,6 +1,7 @@
 package com.example.circuitgen;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.database.Cursor;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -29,38 +30,35 @@ public class ListOfSaved extends AppCompatActivity {
         reView.setAdapter(myAdapter);
     }
 
-    public void onNameClick(View v)
-    {
-        TextView txtView  = (TextView) v;
+    public void onNameClick(View v) {
+        TextView txtView = (TextView) v;
         String Name = txtView.getText().toString();
-        Cursor CircRecord = myDb.CircuitData(Name);
-        CircRecord.moveToFirst();
-        String CircuitResult = CircRecord.getString(0);
-        showMessage(Name, CircuitResult);
+        CircuitHolder SavedCirc = myDb.getSavedCircuit(Name);
+        Intent intent = new Intent(getApplicationContext(),CircuitDisplay.class);
+//        intent.putExtra("SavedCircuit", true);
+        intent.putExtra("CustomCircuit", SavedCirc);
+        startActivity(intent);
     }
 
-    public String[] SavedData()
-    {
+    public String[] SavedData() {
         Cursor res = myDb.SavedCircuitNames();
-        if(res.getCount() == 0)
-        {
-            showMessage("Lazy!", "No Circuits Saved Yet");
+        if (res.getCount() == 0) {
+            showMessage("Empty List", "No Circuits Saved Yet");
             return testString;
         }
         String[] resultString = new String[0];
-        while(res.moveToNext())
-        {
+        while (res.moveToNext()) {
             resultString = myDb.addOn(resultString, res.getString(0));
         }
         return resultString;
     }
 
-    public void showMessage(String Title, String Message)
-    {
+    public void showMessage(String Title, String Message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
         builder.setTitle(Title);
         builder.setMessage(Message);
         builder.show();
     }
+
 }

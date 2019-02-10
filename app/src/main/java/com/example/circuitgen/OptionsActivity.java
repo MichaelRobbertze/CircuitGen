@@ -2,11 +2,14 @@ package com.example.circuitgen;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
+import com.google.gson.Gson;
 
 public class OptionsActivity extends AppCompatActivity {
 
@@ -20,7 +23,6 @@ public class OptionsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_options);
         myDb = new DBHelper(this);
-
         btnGenerate = (Button) findViewById(R.id.btnGenerate);
         btnView = (Button) findViewById(R.id.btnViewEx);
         btnSaved = (Button) findViewById(R.id.btnSaved);
@@ -45,12 +47,15 @@ public class OptionsActivity extends AppCompatActivity {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        String theNote;
+                        String theNote = "";
+                        //Add some safety stuff
+                        theNote += "Warning\n\n";
+                        theNote += "\tThe exercises depicted in this application can be quite dangerous without the proper training and practice, as such I have to say do not attempt any moves which are out of your skill level and have an able spotter to assist you when you need one\n\n";
                         //Add Circuit Generating Info
-                        theNote = "Circuit Generating\n\n";
+                        theNote += "Circuit Generating\n\n";
                         theNote += "\tRegular Days:\n";
                         theNote += "\t\t Recommended Length: 10 - 12\n";
-                        theNote += "\t\t Do each exercise listen only once\n\n";
+                        theNote += "\t\t Do each item on the list only once\n\n";
                         theNote += "\t HIIT Days:\n";
                         theNote += "\t\t Recommended Length: 8\n";
                         theNote += "\t\t Recommended Time: 40 on, 20 between\n";
@@ -85,7 +90,7 @@ public class OptionsActivity extends AppCompatActivity {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = new Intent(OptionsActivity.this, ListOfSaved.class);
+                        Intent intent = new Intent(getApplicationContext(), ListOfSaved.class);
                         startActivity(intent);
                     }
                 }

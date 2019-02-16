@@ -32,23 +32,132 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String isHead = "isHead";
     public static final String Save_Name = "circuitName";
 
+    //Variables defining the Weekly schedule
+    public static String Schedule_Table = "Schedule_Table";
+    public static String DayID = "ID";
+    public static String DayOfTheWeek = "DayOfTheWeek";
+    public static String isArms = "isArms";
+    public static String isBAS = "isBAS";
+    public static String isCore = "isCore";
+    public static String isLegs = "isLegs";
+    public static String isHIIT = "isHIIT";
+
     //DB Constructor
     public DBHelper(Context context)
     {
-        super(context, DB_Name, null, 26);
+        super(context, DB_Name, null, 29);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table " + Table_Name + " (ID Integer primary key autoincrement, Name text, Option_1 text, Option_2 text, Category text, isEasy text, Description text)");
         db.execSQL("create table if not exists " + Save_Table + " (ID Integer primary key autoincrement, Exercise text, Next_Index Integer, isHead text, circuitName text)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS " + Schedule_Table + " (ID Integer PRIMARY KEY AUTOINCREMENT, DayOfTheWeek text, isArms text, isBAS text, isCore text, isLegs text, isHIIT text)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
         db.execSQL("drop table if exists " + Table_Name);
-        db.execSQL("drop table if exists " + Save_Table);
+//        db.execSQL("drop table if exists " + Save_Table);
+        db.execSQL("DROP TABLE IF EXISTS " + Schedule_Table);
         onCreate(db);
+    }
+
+    public boolean isScheduleSet()
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String query = "SELECT * FROM " + Schedule_Table;
+        Cursor cursor = db.rawQuery(query, null);
+        cursor.moveToFirst();
+        return cursor.getString(2) != null;
+    }
+
+    public String ScheduleString(boolean[] arr)
+    {
+        String res = "";
+        String[] strings = new String[]{"Arms & ","Back/Shoulders & ","Core & ","Legs & ","HIIT & "};
+        for(int i=0; i<arr.length; i++)
+        {
+            if(arr[i])
+                res += strings[i];
+        }
+        if(res == "")
+            if(isScheduleSet())
+                res = "Rest Day & ";
+            else
+                res = "Not yet programmed & ";
+
+        res = res.substring(0,res.length()-3);
+        return res;
+    }
+
+    public String getWeeksSchedule()
+    {
+        String res = "", theDay;
+        SQLiteDatabase db = this.getWritableDatabase();
+        String query = "SELECT * FROM " + Schedule_Table;
+        boolean[] resArr = new boolean[5];
+        Cursor cursor = db.rawQuery(query, null);
+        while(cursor.moveToNext())
+        {
+            theDay = cursor.getString(1);
+            resArr[0] = StringToBool(cursor.getString(2));
+            resArr[1] = StringToBool(cursor.getString(3));
+            resArr[2] = StringToBool(cursor.getString(4));
+            resArr[3] = StringToBool(cursor.getString(5));
+            resArr[4] = StringToBool(cursor.getString(6));
+            res += theDay + ": " + ScheduleString(resArr) + "\n\n";
+        }
+        return res;
+    }
+
+    public boolean[] getDaysSchedule(String Day)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String query = "SELECT * FROM " + Schedule_Table + " WHERE " + DayOfTheWeek + " LIKE '" + Day + "'";
+        Cursor cursor = db.rawQuery(query,null);
+        cursor.moveToFirst();
+//      booleanArray[5] = {isArms, isBAS, isCore, isLegs, isHIIT}
+        boolean[] res = new boolean[5];
+        res[0] = StringToBool(cursor.getString(2));
+        res[1] = StringToBool(cursor.getString(3));
+        res[2] = StringToBool(cursor.getString(4));
+        res[3] = StringToBool(cursor.getString(5));
+        res[4] = StringToBool(cursor.getString(6));
+        return res;
+    }
+
+    public void setDaysSchedule(String Day, boolean isArmsDay, boolean isBASDay, boolean isCoreDay, boolean isLegsDay, boolean isHIITDay)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(DayOfTheWeek, Day);
+        cv.put(isArms, boolToString(isArmsDay));
+        cv.put(isBAS, boolToString(isBASDay));
+        cv.put(isCore, boolToString(isCoreDay));
+        cv.put(isLegs, boolToString(isLegsDay));
+        cv.put(isHIIT, boolToString(isHIITDay));
+
+        db.update(Schedule_Table, cv, "DayOfTheWeek=?",new String[]{Day});
+
+    }
+
+    public boolean StringToBool(String str)
+    {
+        if(str != null)
+            return str.equalsIgnoreCase("Yes");
+        else
+            return false;
+    }
+
+    public String boolToString(boolean bool)
+    {
+        if(bool)
+            return "Yes";
+        else if(!bool)
+            return "No";
+        else
+            return null;
     }
 
     public CircuitHolder getExercise(String name)
@@ -65,6 +174,13 @@ public class DBHelper extends SQLiteOpenHelper {
             myExercise = new CircuitHolder(exName, exDescription, 0);
         }
         return myExercise;
+    }
+
+    public void DeleteSavedCircuit(String savedCirc)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(Save_Table, "circuitName=?", new String[] {savedCirc});
+
     }
 
     public void saveCircuit(CircuitHolder myCircuit, String isFirst, int num, String SaveName)
@@ -122,7 +238,7 @@ public class DBHelper extends SQLiteOpenHelper {
             myCircEntries[i] = savedCursor.getString(1);
             savedCursor.moveToNext();
         }
-        CircuitHolder mySavedCircuit = CreateLinkedList(null,myCircEntries,0);
+        CircuitHolder mySavedCircuit = CreateLinkedList(null,myCircEntries,0, Name);
         return mySavedCircuit;
     }
 
@@ -134,15 +250,15 @@ public class DBHelper extends SQLiteOpenHelper {
 //    }
 
     //recursive method initially passed an empty circuitholder and a string array of all the list entries
-    public CircuitHolder CreateLinkedList(CircuitHolder myCircuit, String[] listofstuff, int pos)
+    public CircuitHolder CreateLinkedList(CircuitHolder myCircuit, String[] listofstuff, int pos, String saveName)
     {
         if(pos < listofstuff.length - 1)
         {
-            myCircuit = new CircuitHolder(listofstuff[pos], CreateLinkedList(myCircuit, listofstuff, pos+1), 1);
+            myCircuit = new CircuitHolder(listofstuff[pos], CreateLinkedList(myCircuit, listofstuff, pos+1, saveName), 1, saveName);
         }
         else if(pos == listofstuff.length - 1)
         {
-            myCircuit = new CircuitHolder(listofstuff[pos], 1);
+            myCircuit = new CircuitHolder(listofstuff[pos], 1, saveName);
         }
         return myCircuit;
     }
@@ -186,6 +302,14 @@ public class DBHelper extends SQLiteOpenHelper {
         contentValues.put(Col_7, Description);
 
         db.insert(Table_Name, null, contentValues);
+    }
+    public void insertScheds(String Day)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(DayOfTheWeek, Day);
+
+        db.insertWithOnConflict(Schedule_Table, null, contentValues, SQLiteDatabase.CONFLICT_IGNORE);
     }
 
     public Cursor getAllExercises()
@@ -351,9 +475,29 @@ public class DBHelper extends SQLiteOpenHelper {
     {
         SQLiteDatabase db = this.getWritableDatabase();
         String count = "SELECT count(*) FROM " + Table_Name;
+        String countSched = "SELECT count(*) FROM " + Schedule_Table;
+
         Cursor myCursor = db.rawQuery(count, null);
+        Cursor myCursorSched = db.rawQuery(countSched, null);
+
         myCursor.moveToFirst();
+        myCursorSched.moveToFirst();
+
         int iCount = myCursor.getInt(0);
+        int iCountSched = myCursorSched.getInt(0);
+
+        if(iCountSched > 0)
+            return;
+        else{
+            insertScheds("Monday");
+            insertScheds("Tuesday");
+            insertScheds("Wednesday");
+            insertScheds("Thursday");
+            insertScheds("Friday");
+            insertScheds("Saturday");
+            insertScheds("Sunday");
+        }
+
         if(iCount > 0)
             return;
         else {
@@ -432,61 +576,60 @@ public class DBHelper extends SQLiteOpenHelper {
             insertData("Maltese Lifts with Weights","10","12","BackAndShoulders","Yes","Keep your core tight and legs and arms straight\n\nLower weights down next to your side and then bring them back up and together above your legs\n\nTry have straight arms however this puts major strain on the elbows and as such I do these with my arms bent ever so slightly");
 
             //Core Exercises (25 Total)
-            insertData("Windscreen Wipers","24 [12 / side]","20 [10 / side]","Core","No","test");
-            insertData("Leg Lifts","15","20","Core","Yes","test");
-            insertData("Plank Hold","1 Minute","1 Minute 15 Seconds","Core","Yes","test");
-            insertData("Dish Hold","1 Minute","45 Seconds","Core","Yes","test");
-            insertData("Dish Rocks","60","50","Core","Yes","test");
-            insertData("Sitting Leg Lifts","20","25","Core","Yes","test");
-            insertData("Lying Leg Lifts","20","25","Core","Yes","test");
-            insertData("Side Plank Hold","45 Seconds Each Side","30 Seconds Resisted Each Side","Core","Yes","test");
-            insertData("Inchworm With Sliders","2 Lengths","3 Lengths","Core","Yes","test");
-            insertData("Side Rocks","30 Each Side","25 Each Side","Core","Yes","test");
-            insertData("Extended Plank Hold","30 Seconds","40 Seconds","Core","Yes","test");
-            insertData("Jack Knives","25","30","Core","Yes","test");
-            insertData("Hanging Sit-ups","15","20","Core","Yes","test");
-            insertData("Crunches","30","40","Core","Yes","test");
-            insertData("V-Ups","10","12","Core","No","test");
-            insertData("Bruce Lee Sit-ups","10","12","Core","Yes","test");
-            insertData("Side Leg Lifts","20 Each Side","25 Each Side","Core","Yes","test");
-            insertData("Bicycle Crunches","50","40","Core","Yes","test");
-            insertData("Resisted Dish Hold","40 Seconds","2 x 25 Seconds","Core","Yes","test");
-            insertData("Tuck-ups","30","25","Core","Yes","test");
-            insertData("L-Sit Hold","3 x 10 Seconds","2 x 15 Seconds","Core","Yes","test");
-            insertData("Reverse Sit-ups","25","20","Core","Yes","test");
-            insertData("AbCircuit","2 x 8s","10s","Core","Yes","test");
-            insertData("Side Jack-Knives","20 Each Side","25 Each Side","Core","Yes","test");
-            insertData("Kip Extenders","15","12","Core","Yes","test");
+            insertData("Windscreen Wipers","24 [12 / side]","20 [10 / side]","Core","No","Keep your legs and arms straight");
+            insertData("Leg Lifts","15","20","Core","Yes","Lift your legs all the way to your hands and slowly lower them back down\n\nKeep your legs straight the entire time");
+            insertData("Plank Hold","1 Minute","1 Minute 15 Seconds","Core","Yes","Keep your entire body straight");
+            insertData("Dish Hold","1 Minute","45 Seconds","Core","Yes","Only butt/lower back on the ground\n\nKeep your arms overhead and keep your feet very close to the floor, but not touching");
+            insertData("Dish Rocks","60","50","Core","Yes","Keep your entire body tight\n\nKeep the rocks small and controlled");
+            insertData("Sitting Leg Lifts","20","25","Core","Yes","Hands on the floor next to your knees\n\nLift with yur legs straight as high as you can while keeping pressure on your hands");
+            insertData("Lying Leg Lifts","20","25","Core","Yes","Keep your arms on the floor by your sides and keep your legs straight\n\nLift your butt off the floor at the top of each leg lift");
+            insertData("Side Plank Hold","45 Seconds Each Side","30 Seconds Resisted Each Side","Core","Yes","Keep the body tight\n\nKeep your other arm flat by your side the entire time");
+            insertData("Inchworm With Sliders","2 Lengths","3 Lengths","Core","Yes","Pull with arms and legs straight");
+            insertData("Side Rocks","30 Each Side","25 Each Side","Core","Yes","Keep your bottom arm off te floor and use your top arm to balance yourself against the floor\n\nHold your shoulder or side to keep your bottom arm out of the way");
+            insertData("Extended Plank Hold","30 Seconds","40 Seconds","Core","Yes","Arms and legs straight\n\nHands and feet as far apart as you can hold\n\nEars should be brushing against your arms");
+            insertData("Jack Knives","25","30","Core","Yes","Keep your legs straight\n\nTry touch your toes on each rep");
+            insertData("Hanging Sit-ups","15","20","Core","Yes","Go all the way up and all the way down");
+            insertData("Crunches","30","40","Core","Yes","Lift as though you are trying to keep your chest flat but move it towards the ceiling\nDo not curl your stomach like the regular crunches");
+            insertData("V-Ups","10","12","Core","No","Push your butt off the floor at the top of each jack-knife\n\nKeep the hands close to the floor at all times, ready to push");
+            insertData("Bruce Lee Sit-ups","10","12","Core","Yes","Keep the entire body straight and lower your body as low as you can without losing form\n\nIf your butt is dropping then you're doing it wrong");
+            insertData("Side Leg Lifts","20 Each Side","25 Each Side","Core","Yes","Bend your body sideways such that your feet only go up and down\nThere should be as little forward and backward movement as possible");
+            insertData("Bicycle Crunches","50","40","Core","Yes","Touch opposite elbow and knee and ensure that you push your other elbow out behind you when at the top");
+            insertData("Resisted Dish Hold","40 Seconds","2 x 25 Seconds","Core","Yes","Hold a tight shape\n\nSpotter must push down on the ankle area as well as the chest area");
+            insertData("Tuck-ups","30","25","Core","Yes","Bring the knees all the way up to the chest and lower down all the way to straight body");
+            insertData("L-Sit Hold","3 x 10 Seconds","2 x 15 Seconds","Core","Yes","Legs should be at a 90 degree angle with your body\n\nDo not drop your feet below the bars");
+            insertData("Reverse Sit-ups","25","20","Core","Yes","Keep hands on the floor by your sides and lift the butt off the floor\n\nKeep your legs straight and as close to vertical as you can the entire time");
+            insertData("AbCircuit","2 x 8s","10s","Core","Yes","Xs AbCircuit means:\n\t-X seconds dish hold\n\t-X dish rocks\n\t-X Jack-knives\n\t-X Reverse sit-ups\n\t-X Crunches\n\t-X Crossovers\n\t-X seconds dish hold\n\nDo not rest until entire circuit is completed");
+            insertData("Side Jack-Knives","20 Each Side","25 Each Side","Core","Yes","Keep bottom hand on the floor and touch feet each rep with the top hand");
+            insertData("Kip Extenders","15","12","Core","Yes","Keep the bar close to your legs the entire movement\n\nDo not bend your legs");
 
             //Leg Exercises (23 Total)
-            insertData("Lunges","15 Each Leg","20 Each Leg","Legs","Yes","test");
-            insertData("Calf Raises","30-30-30","50","Legs","Yes","test");
-            insertData("Weighted Thrusts","15","12","Legs","Yes","test");
-            insertData("Single Leg Weighted Thrusts","8 Each Leg","6 Each Leg","Legs","Yes","test");
-            insertData("Squats","30","40","Legs","Yes","test");
-            insertData("Weighted Squats","12","15","Legs","Yes","test");
-            insertData("Squat Jumps","18","20","Legs","Yes","test");
-            insertData("Broad Jumps","20","25","Legs","Yes","test");
-            insertData("Lunge Jumps","20","24","Legs","Yes","test");
-            insertData("Box Jumps","10","15","Legs","Yes","test");
-            insertData("Pistol Squats","10 Each Leg","8 Each Leg","Legs","No","test");
-            insertData("Single Leg Roll-ups","10 Each Leg","8 Each Leg","Legs","No","test");
-            insertData("Resistance Runs 25m","2","3","Legs","Yes","test");
-            insertData("Sled Push","2","3","Legs","Yes","test");
-            insertData("Standing Back Tucks","10","8","Legs","No","test");
-            insertData("Standing Front Tucks","6","8","Legs","No","test");
-            insertData("Depth Jumps","8","6","Legs","No","test");
-            insertData("Weighted Lunge Walks 12m","3","4","Legs","Yes","test");
-            insertData("Leg Extension","15","20","Legs","Yes","test");
-            insertData("Hamstring Sliders","10 Each Leg","8 Each Leg","Legs","Yes","test");
-            insertData("Single Leg Broad Jumps","10 Each Leg","12 Each Leg","Legs","Yes","test");
-            insertData("Tree-Falls","10","15","Legs","Yes","test");
-            insertData("Toe Raises","35","40","Legs","Yes","test");
+            insertData("Lunges","15 Each Leg","20 Each Leg","Legs","Yes","Don't put your knee on the floor\n\n");
+            insertData("Calf Raises","30-30-30","50","Legs","Yes","Make sure heels are going as low as possible and as high as possible");
+            insertData("Weighted Thrusts","15","12","Legs","Yes","Your legs below the knee should remain more or less vertical\n\nThrust until your body is flat");
+            insertData("Single Leg Weighted Thrusts","8 Each Leg","6 Each Leg","Legs","Yes","Keep your other leg straight and horizontal");
+            insertData("Squats","30","40","Legs","Yes","Your knees must not move forward past your feet\nKeep your heels on the ground and sit back into the squat");
+            insertData("Weighted Squats","12","15","Legs","Yes","Do not use too much weight\n30-40kg is usually good");
+            insertData("Squat Jumps","18","20","Legs","Yes","From a low squat, extend your body and jump up in one explosive motion\n\nSwing your arms above your head as you jump");
+            insertData("Broad Jumps","20","25","Legs","Yes","Jump as far as you can forwards from a static stand\n\nMake sure both feet leave the ground and land at the same time\nBoth legs push equally as hard");
+            insertData("Lunge Jumps","20","24","Legs","Yes","From a lunge, use an explosive jump and switch your legs to land in another lunge");
+            insertData("Box Jumps","10","15","Legs","Yes","Dont jump onto a surface too high for you to comfortably land on\n\nStand up fully once on top of the box before dismounting");
+            insertData("Pistol Squats","10 Each Leg","8 Each Leg","Legs","No","Your knees must not move forward past your feet\nKeep your heel on the ground and sit back into the squat while keeping your leg straight out in front of you");
+            insertData("Single Leg Roll-ups","10 Each Leg","8 Each Leg","Legs","No","You can use your hands when falling back and rolling but do not use them when rolling back up to stand\n\nKeep your other leg straight out in front of you");
+            insertData("Resistance Runs 25m","2","3","Legs","Yes","Make sure the person pulling against you isn't pulling too hard\n\nYou must still be able to somewhat run, it must just be hard");
+            insertData("Sled Push 20m","2","3","Legs","Yes","Find a low heavy thing and push it about 20m as one rep");
+            insertData("Standing Back Tucks","10","8","Legs","No","Only do this as an exercise if you can safely do a standing back flip and have required safety mats and stuff to perform it");
+            insertData("Standing Front Tucks","6","8","Legs","No","Only do this as an exercise if you can safely do a standing front flip and have required safety mats and stuff to perform it\n\nUse your arms in the regular way (above the head & throw forwards)\nOr add some flair and do a russian lift (Swing your arms down and lift behind you to generate momentum for the flip)");
+            insertData("Depth Jumps","8","6","Legs","No","Jump from a high surface and absorb the landing with a squat motion\nDon't jump from too high unless you have the appropriate landing mats and padding to land on");
+            insertData("Weighted Lunge Walks 12m","3","4","Legs","Yes","8-10kg in each hand is nice\nOne large 15-20kg plate on the back works as well");
+            insertData("Leg Extension","15","20","Legs","Yes","Do not overdo the amount of weigh tyou use for this\n\nTry holding the top of each extension just momentarily");
+            insertData("Hamstring Sliders","10 Each Leg","8 Each Leg","Legs","Yes","Keep the other leg straight and out at about a 30-45 degree angle while you slide your other leg in and out\n\nDon't lie down when you slide your leg out/nKeep your butt off the floor");
+            insertData("Single Leg Broad Jumps","10 Each Leg","12 Each Leg","Legs","Yes","Static standing jumps on one leg\nUse your other leg to swing your body up and forwards");
+            insertData("Tree-Falls","10","15","Legs","Yes","Have a spotter hold your legs down if you cannot find an appropriate place to put your feet\n\nDon't stick your butt out on the way up to help yourself get up, keep your body straight and push off the floor with your arms as little as possible to get back up after lowering down");
 
             //Other Exercises (20 Total)
-            insertData("Push-up Burpees","","","Other","Yes","test");
-            insertData("Fat Mat Sprint","","","Other","Yes","test");
-            insertData("Skipping","","","Other","Yes","test");
+            insertData("Push-up Burpees","","","Other","Yes","Push up, then jump your feet between your hands, then explosively jump up, then put your hands back down and jump your feet out to push-up position and push up");
+            insertData("Fat Mat Sprint","","","Other","Yes","Run in place on something somewhat squishy\n\nLift your knees high while running");
+            insertData("Skipping","","","Other","Yes","Small and quick\n\nYou can do double-unders if you feel like it. Do anything really as long as you keep skipping");
             insertData("Punch Front Tucks","","","Other","No","test");
             insertData("Squat Jumps","","","Other","Yes","test");
             insertData("Push-ups","","","Other","Yes","test");

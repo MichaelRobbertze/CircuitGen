@@ -9,23 +9,26 @@ public class CircuitHolder implements Parcelable {
     public String description;
     public CircuitHolder next;
     public int isSaved = 0;
+    public String saveName;
 
-    public CircuitHolder(String Name, int Saved)
+    public CircuitHolder(String Name, int Saved, String sName)
     {
         name = Name;
         next = null;
         repCount = null;
         description = null;
         isSaved = Saved;
+        saveName = sName;
     }
 
-    public CircuitHolder(String Name, CircuitHolder Next, int Saved)
+    public CircuitHolder(String Name, CircuitHolder Next, int Saved, String sName)
     {
         name = Name;
         next = Next;
         repCount = null;
         description = null;
         isSaved = Saved;
+        saveName = sName;
     }
 
     public CircuitHolder(String Name, String rep)
@@ -34,6 +37,7 @@ public class CircuitHolder implements Parcelable {
         next = null;
         repCount = rep;
         description = null;
+        saveName = null;
     }
     public CircuitHolder(String Name, String Description, int num)
     {
@@ -41,6 +45,7 @@ public class CircuitHolder implements Parcelable {
         next = null;
         repCount = null;
         description = Description;
+        saveName = null;
 
     }
 
@@ -50,6 +55,7 @@ public class CircuitHolder implements Parcelable {
         description = in.readString();
         next = in.readParcelable(CircuitHolder.class.getClassLoader());
         isSaved = in.readInt();
+        saveName = in.readString();
     }
 
     public static final Creator<CircuitHolder> CREATOR = new Creator<CircuitHolder>() {
@@ -78,42 +84,8 @@ public class CircuitHolder implements Parcelable {
         dest.writeString(description);
         dest.writeParcelable(next, flags);
         dest.writeInt(isSaved);
+        dest.writeString(saveName);
     }
-
-
-//    protected CircuitHolder(Parcel in) {
-//        repCount = in.readString();
-//        name = in.readString();
-//        description = in.readString();
-//        next = in.readParcelable(CircuitHolder.class.getClassLoader());
-//        isSaved = in.readInt();
-//    }
-//
-//    @Override
-//    public void writeToParcel(Parcel dest, int flags) {
-//        dest.writeString(repCount);
-//        dest.writeString(name);
-//        dest.writeParcelable(next, flags);
-//        dest.writeString(description);
-//        dest.writeInt(isSaved);
-//    }
-//
-//    @Override
-//    public int describeContents() {
-//        return 0;
-//    }
-//
-//    public static final Creator<CircuitHolder> CREATOR = new Creator<CircuitHolder>() {
-//        @Override
-//        public CircuitHolder createFromParcel(Parcel in) {
-//            return new CircuitHolder(in);
-//        }
-//
-//        @Override
-//        public CircuitHolder[] newArray(int size) {
-//            return new CircuitHolder[size];
-//        }
-//    };
 
     public static CircuitHolder addExercise(CircuitHolder prev, String rep, String Name)
     {

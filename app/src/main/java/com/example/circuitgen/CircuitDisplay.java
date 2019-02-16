@@ -39,8 +39,12 @@ public class CircuitDisplay extends AppCompatActivity {
         Circuit = intent.getParcelableExtra("CustomCircuit");
 //        boolean isSaved = intent.getBooleanExtra("SavedCircuit",false);
         myDb = new DBHelper(this);
-        if(Circuit.isSaved == 1)
-            btnSave.setVisibility(View.GONE);
+        if(Circuit.isSaved == 1) {
+            DeleteCircuit();
+        }
+        else
+            SaveCircuit();
+
 
 
         reView = (RecyclerView) findViewById(R.id.lstCircuitResult);
@@ -48,7 +52,37 @@ public class CircuitDisplay extends AppCompatActivity {
         reView.setLayoutManager(myLayoutManager);
         myAdapter = new CircuitDisplayAdapter(CircuitStringDisplay(Circuit));
         reView.setAdapter(myAdapter);
-        SaveCircuit();
+    }
+
+    public void DeleteCircuit()
+    {
+        btnSave.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(CircuitDisplay.this);
+                        builder.setTitle("Are you sure?");
+                        builder.setPositiveButton("Yea", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                myDb.DeleteSavedCircuit(Circuit.saveName);
+                                Intent intent = new Intent(getApplicationContext(),ListOfSaved.class);
+                                Toast.makeText(CircuitDisplay.this, "Circuit Deleted", Toast.LENGTH_LONG).show();
+                                startActivity(intent);
+                            }
+                        });
+                        builder.setNegativeButton("Nah", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+                        builder.show();
+                    }
+                }
+        );
+        btnSave.setText("Delete Circuit");
     }
 
     public void SaveCircuit()
@@ -101,6 +135,7 @@ public class CircuitDisplay extends AppCompatActivity {
                     }
                 }
         );
+        btnSave.setText("Save Circuit");
     }
 
     public String[] CircuitStringDisplay(CircuitHolder myCirc)

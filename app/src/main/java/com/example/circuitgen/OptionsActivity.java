@@ -2,18 +2,22 @@ package com.example.circuitgen;
 
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
-import com.google.gson.Gson;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.Calendar;
+import java.util.Date;
 
 public class OptionsActivity extends AppCompatActivity {
 
-    Button btnGenerate, btnView, btnSaved, btnNotes;
+    Button btnGenerate, btnView, btnSaved, btnNotes, btnViewSchedule;
+    TextView txtTodaySchedule, txtTomorrowSchedule, txtNextDaySchedule;
     DBHelper myDb;
 
     //Move btnGenerate listener into its own method, tidy it up.
@@ -27,6 +31,10 @@ public class OptionsActivity extends AppCompatActivity {
         btnView = (Button) findViewById(R.id.btnViewEx);
         btnSaved = (Button) findViewById(R.id.btnSaved);
         btnNotes = (Button) findViewById(R.id.btnNotes);
+        btnViewSchedule = (Button) findViewById(R.id.btnViewSchedule);
+        txtTodaySchedule = (TextView) findViewById(R.id.txtTodayS);
+        txtTomorrowSchedule = (TextView) findViewById(R.id.txtTomorrowS);
+        txtNextDaySchedule = (TextView) findViewById(R.id.txtTheNextDayS);
         btnGenerate.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
@@ -35,10 +43,51 @@ public class OptionsActivity extends AppCompatActivity {
                     }
                 }
         );
-
+        myDb.populate();
         viewAll();
         savedCircuits();
         showNotes();
+        editSchedule();
+        getAndShowScheduleNotes();
+    }
+
+    public void getAndShowScheduleNotes()
+    {
+        Date date = new Date();
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEEE");
+        boolean[] todaysDay = myDb.getDaysSchedule(simpleDateFormat.format(date));
+        String TS = "Today: " + myDb.ScheduleString(todaysDay);
+        txtTodaySchedule.setText(TS);
+
+        c.add(Calendar.DATE, 1);
+        date = c.getTime();
+
+         boolean[] TomorrowsDay = myDb.getDaysSchedule(simpleDateFormat.format(date));
+         String TomS = "Tomorrow: " + myDb.ScheduleString(TomorrowsDay);
+        txtTomorrowSchedule.setText(TomS);
+
+        c.add(Calendar.DATE, 1);
+        date = c.getTime();
+
+        String theNextDayS = simpleDateFormat.format(date);
+         boolean[] NextDay = myDb.getDaysSchedule(theNextDayS);
+         String NS = theNextDayS + ": " + myDb.ScheduleString(NextDay);
+        txtNextDaySchedule.setText(NS);
+
+    }
+
+    public void editSchedule()
+    {
+        btnViewSchedule.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(),EditSchedule.class);
+                startActivity(intent);
+            }
+        });
     }
 
     public void showNotes()

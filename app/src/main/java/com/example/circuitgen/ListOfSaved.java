@@ -43,7 +43,7 @@ public class ListOfSaved extends AppCompatActivity {
     public String[] SavedData() {
         Cursor res = myDb.SavedCircuitNames();
         if (res.getCount() == 0) {
-            showMessage("Empty List", "No Circuits Saved Yet");
+            showMessage("Empty List", "You have no saved circuits at the moment");
             return testString;
         }
         String[] resultString = new String[0];

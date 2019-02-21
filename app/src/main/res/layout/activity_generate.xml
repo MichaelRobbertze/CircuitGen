@@ -6,142 +6,145 @@
     android:layout_height="match_parent"
     tools:context=".Generate">
 
-    <android.support.constraint.ConstraintLayout
-        android:id="@+id/scrollView2"
-        android:layout_width="395dp"
-        android:layout_height="617dp"
+    <CheckBox
+        android:id="@+id/chkArms"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:text="Arms"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/lblCategories"
+        app:layout_constraintTop_toTopOf="@+id/lblCategories" />
+
+    <EditText
+        android:id="@+id/txtLength"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:ems="10"
+        android:inputType="number"
+        android:text="10"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/lblLength"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="119dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="parent" />
 
-        <Button
-            android:id="@+id/btnGo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
-            android:text="Generate Circuit"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.534"
-            app:layout_constraintStart_toStartOf="parent" />
+    <TextView
+        android:id="@+id/lblLength"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Circuit Length:"
+        app:layout_constraintBottom_toBottomOf="@+id/txtLength"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/txtLength" />
 
-        <CheckBox
-            android:id="@+id/chkLegs"
+    <Button
+        android:id="@+id/btnGo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="100dp"
+        android:layout_marginEnd="100dp"
+        android:layout_marginBottom="50dp"
+        android:text="Generate Circuit"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/lblCategories"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Categories:"
+        app:layout_constraintEnd_toEndOf="@+id/lblLength"
+        app:layout_constraintTop_toBottomOf="@+id/txtLength" />
+
+    <CheckBox
+        android:id="@+id/chkBackAndShoulders"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Back and Shoulders"
+        app:layout_constraintEnd_toEndOf="@+id/chkArms"
+        app:layout_constraintStart_toStartOf="@+id/chkArms"
+        app:layout_constraintTop_toBottomOf="@+id/chkArms" />
+
+    <CheckBox
+        android:id="@+id/chkCore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Core"
+        app:layout_constraintEnd_toEndOf="@+id/chkBackAndShoulders"
+        app:layout_constraintStart_toStartOf="@+id/chkBackAndShoulders"
+        app:layout_constraintTop_toBottomOf="@+id/chkBackAndShoulders" />
+
+    <CheckBox
+        android:id="@+id/chkLegs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Legs"
+        app:layout_constraintEnd_toEndOf="@+id/chkCore"
+        app:layout_constraintStart_toStartOf="@+id/chkCore"
+        app:layout_constraintTop_toBottomOf="@+id/chkCore" />
+
+    <CheckBox
+        android:id="@+id/chkOther"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Other"
+        app:layout_constraintEnd_toEndOf="@+id/chkLegs"
+        app:layout_constraintStart_toStartOf="@+id/chkLegs"
+        app:layout_constraintTop_toBottomOf="@+id/chkLegs" />
+
+    <RadioGroup
+        android:id="@+id/radgrpEquip"
+        android:layout_width="wrap_content"
+        android:layout_height="116dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
+        android:checkedButton="@+id/radEquipSkill"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/chkOther">
+
+        <RadioButton
+            android:id="@+id/radEquipSkill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Legs"
-            app:layout_constraintEnd_toEndOf="@+id/chkCore"
-            app:layout_constraintStart_toStartOf="@+id/chkCore"
-            app:layout_constraintTop_toBottomOf="@+id/chkCore" />
+            android:layout_weight="1"
+            android:text="Adequately Skilled with Access to Equipment" />
 
-        <CheckBox
-            android:id="@+id/chkOther"
+        <RadioButton
+            android:id="@+id/radEquipUnskill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Other"
-            app:layout_constraintEnd_toEndOf="@+id/chkLegs"
-            app:layout_constraintStart_toStartOf="@+id/chkLegs"
-            app:layout_constraintTop_toBottomOf="@+id/chkLegs" />
+            android:layout_weight="1"
+            android:text="Rookie with Access to Equipment" />
 
-        <CheckBox
-            android:id="@+id/chkCore"
+        <RadioButton
+            android:id="@+id/radHome"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Core"
-            app:layout_constraintEnd_toEndOf="@+id/chkBackAndShoulders"
-            app:layout_constraintStart_toStartOf="@+id/chkBackAndShoulders"
-            app:layout_constraintTop_toBottomOf="@+id/chkBackAndShoulders" />
-
-        <CheckBox
-            android:id="@+id/chkBackAndShoulders"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Back and Shoulders"
-            app:layout_constraintEnd_toEndOf="@+id/chkArms"
-            app:layout_constraintStart_toStartOf="@+id/chkArms"
-            app:layout_constraintTop_toBottomOf="@+id/chkArms" />
-
-        <CheckBox
-            android:id="@+id/chkArms"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="8dp"
-            android:text="Arms"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/lblCategories"
-            app:layout_constraintTop_toTopOf="@+id/lblCategories" />
-
-        <TextView
-            android:id="@+id/lblCategories"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Categories:"
-            app:layout_constraintEnd_toEndOf="@+id/lblLength"
-            app:layout_constraintTop_toBottomOf="@+id/txtLength" />
-
-        <TextView
-            android:id="@+id/lblLength"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Circuit Length:"
-            app:layout_constraintBottom_toBottomOf="@+id/txtLength"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/txtLength" />
-
-        <LinearLayout
-            android:id="@+id/linearLayout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="119dp"
-            android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="parent" />
-
-        <EditText
-            android:id="@+id/txtLength"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:ems="10"
-            android:inputType="number"
-            android:text="10"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/lblLength"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <CheckBox
-            android:id="@+id/chkMakeEasy"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
-            android:text="Include Just Easy Exercises"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/chkOther" />
-
-        <CheckBox
-            android:id="@+id/chkMakeHard"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
-            android:text="Include Just Hard Exercises"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/chkMakeEasy" />
-    </android.support.constraint.ConstraintLayout>
+            android:layout_weight="1"
+            android:text="Home Workout/Regular Gym" />
+    </RadioGroup>
 
 </android.support.constraint.ConstraintLayout>

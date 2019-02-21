@@ -34,7 +34,6 @@ public class SavedCircuitAdapter extends RecyclerView.Adapter<SavedCircuitAdapte
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         holder.txtText.setText(myDataSet[position]);
-
     }
     @Override
     public int getItemCount() {

@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -49,6 +50,20 @@ public class OptionsActivity extends AppCompatActivity {
         showNotes();
         editSchedule();
         getAndShowScheduleNotes();
+    }
+//    @Override
+//    public void onRestart()
+//    {
+//        super.onRestart();
+//        finish();
+//        startActivity(getIntent());
+//    }
+
+    @Override
+    public void onBackPressed()
+    {
+        finish();
+        moveTaskToBack(true);
     }
 
     public void getAndShowScheduleNotes()
@@ -164,17 +179,29 @@ public class OptionsActivity extends AppCompatActivity {
                             showMessage("Error", "No Data Found");
                             return;
                         }
-                        StringBuffer buff = new StringBuffer();
+                        ArrayList<CircuitHolder> CircList = new ArrayList<>();
                         while(res.moveToNext())
                         {
-                            buff.append("ID: " + res.getString(0) + "\n");
-                            buff.append("Name: " + res.getString(1) + "\n");
-                            buff.append("Opt 1: " + res.getString(2) + "\n");
-                            buff.append("Opt 2: " + res.getString(3) + "\n");
-                            buff.append("Category: " + res.getString(4) + "\n");
-                            buff.append("Is Easy: " + res.getString(5) + "\n\n");
+                            CircuitHolder circ = new CircuitHolder("("+res.getString(1)+")","");
+                            circ.isSaved = 1;
+                            circ.hideTheButtons = 1;
+                            CircList.add(circ);
+//                            buff.append("ID: " + res.getString(0) + "\n");
+//                            buff.append("Name: " + res.getString(1) + "\n");
+//                            buff.append("Opt 1: " + res.getString(2) + "\n");
+//                            buff.append("Opt 2: " + res.getString(3) + "\n");
+//                            buff.append("Category: " + res.getString(4) + "\n");
+//                            buff.append("Is Easy: " + res.getString(5) + "\n\n");
+
                         }
-                        showMessage("Exercises",buff.toString());
+                        for(int i=0; i<CircList.size() - 1; i++)
+                        {
+                            CircList.get(i).next = CircList.get(i+1);
+                        }
+                        Intent intent = new Intent(getApplicationContext(),CircuitDisplay.class);
+                        intent.putExtra("CustomCircuit", CircList.get(0));
+                        startActivity(intent);
+//                        showMessage("Exercises",buff.toString());
                     }
                 }
         );

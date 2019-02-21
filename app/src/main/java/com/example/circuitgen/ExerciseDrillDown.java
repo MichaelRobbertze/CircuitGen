@@ -144,6 +144,51 @@ public class ExerciseDrillDown extends AppCompatActivity {
             case"Pull-ups on Rope with Vertical Grip":
                 imgGif.setImageResource(R.drawable.pullupsonropewithverticalgrip);
                 break;
+            case"Windscreen Wipers":
+                imgGif.setImageResource(R.drawable.windscreenwipers);
+                break;
+            case"Leg Lifts":
+                imgGif.setImageResource(R.drawable.leglifts);
+                break;
+            case"Plank Hold":
+                imgGif.setImageResource(R.drawable.plankhold);
+                break;
+            case"Dish Hold":
+                imgGif.setImageResource(R.drawable.dishhold);
+                break;
+            case"Lying Leg Lifts":
+                imgGif.setImageResource(R.drawable.lyingleglifts);
+                break;
+            case"Inchworm with Sliders":
+                imgGif.setImageResource(R.drawable.inchwormwithsliders);
+                break;
+            case"Extended Plank Hold":
+                imgGif.setImageResource(R.drawable.extendedplankhold);
+                break;
+            case"Jack Knives":
+                imgGif.setImageResource(R.drawable.jackknives);
+                break;
+            case"Hanging Sit-ups":
+                imgGif.setImageResource(R.drawable.hangingsitups);
+                break;
+            case"Crunches":
+                imgGif.setImageResource(R.drawable.crunches);
+                break;
+            case"Bruce Lee Sit-ups":
+                imgGif.setImageResource(R.drawable.bruceleesitups);
+                break;
+            case"Bicycle Crunches":
+                imgGif.setImageResource(R.drawable.bicyclecrunches);
+                break;
+            case"L-Sit Hold":
+                imgGif.setImageResource(R.drawable.lsithold);
+                break;
+            case"Reverse Sit-ups":
+                imgGif.setImageResource(R.drawable.reversesitups);
+                break;
+            case"Kip Extenders":
+                imgGif.setImageResource(R.drawable.kipextenders);
+                break;
             default:
                 imgGif.setImageResource(R.drawable.thisisagif);
                 break;

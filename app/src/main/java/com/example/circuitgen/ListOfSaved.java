@@ -30,6 +30,17 @@ public class ListOfSaved extends AppCompatActivity {
         reView.setAdapter(myAdapter);
     }
 
+    @Override
+    public void onRestart()
+    {
+        super.onRestart();
+        reView = (RecyclerView) findViewById(R.id.lstSaved);
+        myLayoutManager = new LinearLayoutManager(this);
+        reView.setLayoutManager(myLayoutManager);
+        myAdapter = new SavedCircuitAdapter(SavedData());
+        reView.setAdapter(myAdapter);
+    }
+
     public void onNameClick(View v) {
         TextView txtView = (TextView) v;
         String Name = txtView.getText().toString();

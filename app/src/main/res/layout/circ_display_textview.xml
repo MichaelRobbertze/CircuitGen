@@ -5,6 +5,5 @@
     android:onClick="DetailExercise"
     android:clickable="true"
     android:text="testing"
-    android:textColor="@color/buttonbackgrounds"
     android:padding="10dp"
     android:textSize="24sp" />

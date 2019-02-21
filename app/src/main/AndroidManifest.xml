@@ -9,7 +9,8 @@
         android:roundIcon="@drawable/sports"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ScheduleOfTheDay"></activity>
+        <activity android:name=".CircuitEditor"></activity>
+        <activity android:name=".ScheduleOfTheDay" />
         <activity android:name=".EditSchedule" />
         <activity android:name=".ExerciseDrillDown" />
         <activity android:name=".ListOfSaved" />

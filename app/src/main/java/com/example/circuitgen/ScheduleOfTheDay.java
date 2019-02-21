@@ -1,6 +1,7 @@
 package com.example.circuitgen;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -42,6 +43,14 @@ public class ScheduleOfTheDay extends AppCompatActivity {
 
         AcceptDaysSettings();
         controlChecks();
+    }
+
+    @Override
+    public void onRestart()
+    {
+        super.onRestart();
+        Intent intent = new Intent(getApplicationContext(), EditSchedule.class);
+        startActivity(intent);
     }
 
     public void controlChecks()
@@ -118,25 +127,6 @@ public class ScheduleOfTheDay extends AppCompatActivity {
 
     }
 
-    public void scheduleMaintain()
-    {
-        if(chkRest.isChecked()){
-            chkArms.setChecked(false);
-            chkBAS.setChecked(false);
-            chkCore.setChecked(false);
-            chkLegs.setChecked(false);
-            chkHIIT.setChecked(false);
-        }
-        if(chkHIIT.isChecked())
-        {
-            chkArms.setChecked(false);
-            chkBAS.setChecked(false);
-            chkCore.setChecked(false);
-            chkLegs.setChecked(false);
-            chkRest.setChecked(false);
-        }
-    }
-
     public void AcceptDaysSettings()
     {
         btnAccept.setOnClickListener(new View.OnClickListener() {
@@ -152,7 +142,12 @@ public class ScheduleOfTheDay extends AppCompatActivity {
 
                 if(!isArms && !isBAS && !isCore && !isLegs && !isHIIT && !isRest)
                 {
-                    Toast.makeText(ScheduleOfTheDay.this, "Select the \"Rest\" category if you want " + Day + " to be a rest day", Toast.LENGTH_LONG).show();
+                    Toast toast = Toast.makeText(ScheduleOfTheDay.this, "Selection is empty! Select \"Rest\" if you want to do nothing on a "+ Day, Toast.LENGTH_LONG);
+                    View view = toast.getView();
+                    TextView text = (TextView) view.findViewById(android.R.id.message);
+                    text.setBackgroundResource(R.color.whitegrey);
+                    text.setTextColor(Color.parseColor("#000000"));
+                    toast.show();
                 }
                 else
                 {

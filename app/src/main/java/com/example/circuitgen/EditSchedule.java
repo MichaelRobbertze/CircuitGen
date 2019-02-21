@@ -27,6 +27,22 @@ public class EditSchedule extends AppCompatActivity {
         txtSchedule.setText(entireSchedule);
     }
 
+    @Override
+    public void onRestart()
+    {
+        super.onRestart();
+        finish();
+        startActivity(getIntent());
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        super.onBackPressed();
+        Intent intent = new Intent(getApplicationContext(), OptionsActivity.class);
+        startActivity(intent);
+    }
+
     public void beginScheduleReset()
     {
         btnEditSchedule.setOnClickListener(new View.OnClickListener() {

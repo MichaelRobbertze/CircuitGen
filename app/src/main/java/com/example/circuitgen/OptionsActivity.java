@@ -1,14 +1,29 @@
 package com.example.circuitgen;
 
+import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,7 +32,7 @@ import java.util.Date;
 
 public class OptionsActivity extends AppCompatActivity {
 
-    Button btnGenerate, btnView, btnSaved, btnNotes, btnViewSchedule;
+    Button btnGenerate, btnView, btnSaved, btnNotes, btnViewSchedule, btnEditOptions;
     TextView txtTodaySchedule, txtTomorrowSchedule, txtNextDaySchedule;
     DBHelper myDb;
 
@@ -35,6 +50,7 @@ public class OptionsActivity extends AppCompatActivity {
         btnViewSchedule = (Button) findViewById(R.id.btnViewSchedule);
         txtTodaySchedule = (TextView) findViewById(R.id.txtTodayS);
         txtTomorrowSchedule = (TextView) findViewById(R.id.txtTomorrowS);
+        btnEditOptions = (Button) findViewById(R.id.btnEditExercises);
         txtNextDaySchedule = (TextView) findViewById(R.id.txtTheNextDayS);
         btnGenerate.setOnClickListener(
                 new View.OnClickListener() {
@@ -49,6 +65,7 @@ public class OptionsActivity extends AppCompatActivity {
         savedCircuits();
         showNotes();
         editSchedule();
+        editPage();
         getAndShowScheduleNotes();
     }
 //    @Override
@@ -142,7 +159,7 @@ public class OptionsActivity extends AppCompatActivity {
                         theNote += "\tLegs: Exercises for the legs. Mixture between regular and plyometric leg exercises\n\n";
                         theNote += "\tOther: Exercises used to generate HIIT circuits, involves full range of muscle groups. These exercises do not have set rep amounts as they are performed for a certain time limit";
 
-                        showMessage("Info", theNote);
+                        showMessage("Info", theNote, getApplicationContext());
                     }
                 }
         );
@@ -176,7 +193,7 @@ public class OptionsActivity extends AppCompatActivity {
                         Cursor res = myDb.getAllExercises();
                         if(res.getCount() == 0)
                         {
-                            showMessage("Error", "No Data Found");
+                            showMessage("Error", "No Data Found", getApplicationContext());
                             return;
                         }
                         ArrayList<CircuitHolder> CircList = new ArrayList<>();
@@ -207,14 +224,24 @@ public class OptionsActivity extends AppCompatActivity {
         );
     }
 
-    public void showMessage(String Title, String Message)
+    public static void showMessage(String Title, String Message, Context context)
     {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setCancelable(true);
         builder.setTitle(Title);
         builder.setMessage(Message);
         builder.show();
     }
 
+    public void editPage()
+    {
+        btnEditOptions.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), EditExercises.class);
+                startActivity(intent);
+            }
+        });
+    }
 
 }

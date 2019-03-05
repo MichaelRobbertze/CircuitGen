@@ -15,7 +15,7 @@ public class ListOfSaved extends AppCompatActivity {
     private RecyclerView reView;
     private RecyclerView.Adapter myAdapter;
     private RecyclerView.LayoutManager myLayoutManager;
-    String[] testString = {""};
+    String[] testString = {"Nothing to Display"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +28,12 @@ public class ListOfSaved extends AppCompatActivity {
         reView.setLayoutManager(myLayoutManager);
         myAdapter = new SavedCircuitAdapter(SavedData());
         reView.setAdapter(myAdapter);
+    }
+
+    @Override
+    public void onBackPressed(){
+        Intent intent = new Intent(ListOfSaved.this, OptionsActivity.class);
+        startActivity(intent);
     }
 
     @Override
@@ -44,6 +50,8 @@ public class ListOfSaved extends AppCompatActivity {
     public void onNameClick(View v) {
         TextView txtView = (TextView) v;
         String Name = txtView.getText().toString();
+        if(Name.equalsIgnoreCase("Nothing to Display"))
+            return;
         CircuitHolder SavedCirc = myDb.getSavedCircuit(Name);
         Intent intent = new Intent(getApplicationContext(),CircuitDisplay.class);
 //        intent.putExtra("SavedCircuit", true);

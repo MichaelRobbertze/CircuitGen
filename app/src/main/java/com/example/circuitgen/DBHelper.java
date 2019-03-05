@@ -25,6 +25,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String Col_6 = "isEasy";
     public static final String Col_7 = "Description";
     public static final String Col_8 = "Home";
+    public static final String Col_9 = "Unwanted";
 
     //Variables defining the table of saved circuits
     public static final String Save_Table = "SavedCircuits";
@@ -44,16 +45,21 @@ public class DBHelper extends SQLiteOpenHelper {
     public static String isLegs = "isLegs";
     public static String isHIIT = "isHIIT";
 
+    //Variables defining the Unwanted exercises table
+    public static final String Unwanted_Table = "UnwantedExercises";
+    public static final String unwantedName = "Name";
+
     //DB Constructor
     public DBHelper(Context context) {
-        super(context, DB_Name, null, 35);
+        super(context, DB_Name, null, 40);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table " + Table_Name + " (ID Integer primary key autoincrement, Name text, Option_1 text, Option_2 text, Category text, isEasy text, Description text, Home text)");
+        db.execSQL("create table " + Table_Name + " (ID Integer primary key autoincrement, Name text, Option_1 text, Option_2 text, Category text, isEasy text, Description text, Home text, Unwanted text)");
         db.execSQL("create table if not exists " + Save_Table + " (ID Integer primary key autoincrement, Exercise text, Next_Index Integer, isHead text, circuitName text)");
         db.execSQL("CREATE TABLE IF NOT EXISTS " + Schedule_Table + " (ID Integer PRIMARY KEY AUTOINCREMENT, DayOfTheWeek text, isArms text, isBAS text, isCore text, isLegs text, isHIIT text)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS " + Unwanted_Table + "(ID Integer PRIMARY KEY AUTOINCREMENT, Name text)");
     }
 
     @Override
@@ -87,10 +93,11 @@ public class DBHelper extends SQLiteOpenHelper {
         return;
     }
 
-    public String replaceExercise(String currEx, boolean isHIIT)
+    public String replaceExercise(int num, String currEx, boolean isHIIT)
     {
         SQLiteDatabase db = this.getWritableDatabase();
-        int num = Integer.parseInt(currEx.substring(0,1));
+//        int num = Integer.parseInt(currEx.substring(0,1));
+        num++;
         char[] currExChar = currEx.toCharArray();
         currEx = getExName(currExChar);
         String category = getExCategory(currEx);
@@ -337,6 +344,41 @@ public class DBHelper extends SQLiteOpenHelper {
 //        db.insert(Save_Table, null, contentValues);
 //    }
 
+    public void setRemoved(String remName)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        ContentValues cv = new ContentValues();
+        cv.put(Col_9, "Yes");
+        contentValues.put(unwantedName, remName);
+        db.insert(Unwanted_Table, null, contentValues);
+//        db.delete(Table_Name, "Name=?", new String[]{remName});
+        db.update(Table_Name, cv, "Name=?", new String[]{remName});
+    }
+
+    public void redoRemoval(SQLiteDatabase db)
+    {
+        String remName;
+        Cursor cursor = db.rawQuery("SELECT Name FROM " + Unwanted_Table, null);
+        while(cursor.moveToNext())
+        {
+            ContentValues cv = new ContentValues();
+            cv.put(Col_9,"Yes");
+            remName = cursor.getString(0);
+            db.update(Table_Name,cv, "Name=?", new String[]{remName});
+        }
+    }
+
+    public void unRemove(String remName)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(Col_9, "No");
+        db.delete(Unwanted_Table, "Name=?", new String[]{remName});
+//        db.delete(Table_Name, "Name=?", new String[]{remName});
+        db.update(Table_Name, cv, "Name=?", new String[]{remName});
+    }
+
     public void insertData(String Name, String Home, String Option_1, String Option_2, String Category, String isEasy, String Description) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
@@ -347,6 +389,7 @@ public class DBHelper extends SQLiteOpenHelper {
         contentValues.put(Col_6, isEasy);
         contentValues.put(Col_7, Description);
         contentValues.put(Col_8, Home);
+        contentValues.put(Col_9, "No");
 
         db.insert(Table_Name, null, contentValues);
     }
@@ -361,7 +404,13 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public Cursor getAllExercises() {
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("select * from " + Table_Name + " Order by " + Col_2, null);
+        Cursor res = db.rawQuery("select * from " + Table_Name + " WHERE " + Col_9 + " LIKE 'No' Order by " + Col_2, null);
+        return res;
+    }
+
+    public Cursor getAllUnwantedExercises() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("select * from " + Table_Name + " WHERE " + Col_9 + " LIKE 'Yes' Order by " + Col_2, null);
         return res;
     }
 
@@ -426,21 +475,21 @@ public class DBHelper extends SQLiteOpenHelper {
         //based on the states of the check boxes, add required queries to string[], as well as count available choices
         if (isArms && first) {
             first = false;
-            requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Arms'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1";
-            Cursor armCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Arms'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1", null);
+            requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Arms'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1";
+            Cursor armCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Arms'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1", null);
             armCurs.moveToFirst();
             AvailableOptions[0] = armCurs.getInt(0);
         }
         if (isBackAndShoulders) {
             if (first) {
                 first = false;
-                requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1";
-                Cursor bsCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1", null);
+                requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1";
+                Cursor bsCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1", null);
                 bsCurs.moveToFirst();
                 AvailableOptions[0] = bsCurs.getInt(0);
             } else {
-                requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1");
-                Cursor bsCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1", null);
+                requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1");
+                Cursor bsCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'BackAndShoulders'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1", null);
                 bsCurs.moveToFirst();
                 AvailableOptions = addOnInt(AvailableOptions, bsCurs.getInt(0));
             }
@@ -448,13 +497,13 @@ public class DBHelper extends SQLiteOpenHelper {
         if (isCore) {
             if (first) {
                 first = false;
-                requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1";
-                Cursor cCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1", null);
+                requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1";
+                Cursor cCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1", null);
                 cCurs.moveToFirst();
                 AvailableOptions[0] = cCurs.getInt(0);
             } else {
-                requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1");
-                Cursor cCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1", null);
+                requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1");
+                Cursor cCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Core'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1", null);
                 cCurs.moveToFirst();
                 AvailableOptions = addOnInt(AvailableOptions, cCurs.getInt(0));
             }
@@ -462,13 +511,13 @@ public class DBHelper extends SQLiteOpenHelper {
         if (isLegs) {
             if (first) {
                 first = false;
-                requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1";
-                Cursor lCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1", null);
+                requiredQueries[0] = "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1";
+                Cursor lCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1", null);
                 lCurs.moveToFirst();
                 AvailableOptions[0] = lCurs.getInt(0);
             } else {
-                requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1");
-                Cursor lCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs'" + easyQueryAdd + " ORDER BY RANDOM() LIMIT 1", null);
+                requiredQueries = addOn(requiredQueries, "SELECT * FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1");
+                Cursor lCurs = db.rawQuery("SELECT count(*) FROM " + Table_Name + " WHERE " + Col_5 + " Like 'Legs'" + easyQueryAdd + " AND " + Col_9 + " LIKE 'No' ORDER BY RANDOM() LIMIT 1", null);
                 lCurs.moveToFirst();
                 AvailableOptions = addOnInt(AvailableOptions, lCurs.getInt(0));
             }
@@ -555,7 +604,9 @@ public class DBHelper extends SQLiteOpenHelper {
         if (iCount <= 0) {
             //Arms Exercises (33 Total)
             insertData("Dips", "No", "50", "40", "Arms", "Yes", "Keep your body as straight as possible \n\nTry your best to dip down until your shoulders almost touch the bar");
+            insertData("One Arm Pushups", "Yes", "10 Each Arm", "8 Each Arm", "Arms", "Yes", "Keep your body straight\n\nTip your unused shoulder up so your pushing shoulder can go all the way to the floor");
             insertData("Reverse Dips", "Yes", "60", "50", "Arms", "Yes", "Ensure you are in a comfortable position and the gap between your hands and feet is not too large \n\nYour back should be very close to the bar when you dip down");
+            insertData("One arm Reverse Dips", "Yes", "30 each side", "20 each side", "Arms", "Yes", "Reverse dips with a wider grip than normal\n\nLower to one side then the other\n\nThey're like archer reverse dips");
             insertData("Swings to Handstand", "No", "15", "2 x 10", "Arms", "Yes", "Keep your body straight and swing from the shoulders \n\nThere should always be a straight line down your body, from your shoulders to your feet (So don't bend at the hips) \n\nIt is a common for people to drop the bum and lift the feet in the front swing, so try not to do this by exaggerating pushing your hips out in the front swing");
             insertData("Dip Swings", "No", "15", "15", "Arms", "Yes", "Ensure your dips and your swings are both strong before trying this one \n\nWhen your feet are going down, you must dip down\n\nWhen your feet are going up, push back up out of the dip");
             insertData("Dip Swings to Planche", "No", "10", "12", "Arms", "Yes", "Ensure dip swings are strong for this one \n\nTry to momentarily stop in a planche at the back of each dip swing");
@@ -563,11 +614,23 @@ public class DBHelper extends SQLiteOpenHelper {
             insertData("Chicken Wing Dips", "No", "15", "18", "Arms", "No", "Keep your body straight as possible \n\nDip your shoulders as low as possible before dropping back into upper arm support \n\nThis motion is key in a muscle-up when transitioning from under the bar to over the bar and as such is a good way to train for a muscle-up if that is your goal");
             insertData("Overgrip Pull-ups", "Yes", "15", "10", "Arms", "Yes", "Control the movement\nLower yourself down, do not drop down uncontrollably as this could damage your shoulders and such\n\nEnsure you at least get your chin over the bar, I personally try and go a bit higher and get my nipples to the bar on each rep\n\nTry to arch your body and use your back and shoulder muscles to lift yourself up");
             insertData("Undergrip Pull-ups", "Yes", "15", "10", "Arms", "Yes", "Control the movement\nLower yourself down, do not drop down uncontrollably as this could damage your shoulders and such\n\nEnsure you at least get your chin over the bar\n\nTry to pike your body slightly so your feet are in front of your body and focus on using the biceps for pulling yourself up");
+            insertData("One arm Undergrip Pull-ups", "Yes", "5 each arm", "8 each arm", "Arms", "No", "Hold your wrist with your other hand for support until you can do it without your other hand");
             insertData("Wide arm Pull-ups", "Yes", "15", "10", "Arms", "Yes", "Control the movement\nLower yourself down, do not drop down uncontrollably as this could damage your shoulders and such\n\nEnsure you get your chin over the bar\n\nKeep your whole body straight and pull yourself up using your back and shoulder muscles mostly");
             insertData("Diamond Push-ups", "Yes", "20", "30", "Arms", "Yes", "Hands close together with index fingers and thumbs touching to make the shape of a diamond\n\nBring your chest close to your hands on each rep\n\nKeep your body straight");
             insertData("Push-ups", "Yes", "30", "40", "Arms", "Yes", "Bring your chest all the way down in between your hands\n\nkeep your body straight");
+            insertData("Mantis Push-ups", "Yes", "30", "35", "Arms", "Yes", "Start your pushup with your hands slightly in front of your shoulders and lower your elbows to the ground so that your forearms are flat on each rep\n\nKeep the elbows in");
+            insertData("Bodyweight tricep extensions", "Yes", "30", "35", "Arms", "Yes", "with hands higher than your feet, keep your elbows close to your side and lower until your head is below your hands and your triceps are fully stretched, then push back up");
+            insertData("Fingertip Push-ups", "Yes", "20", "25", "Arms", "Yes", "Bring your chest all the way down in between your hands\n\nkeep your body straight");
+            insertData("Push-up 360", "Yes", "14", "16", "Arms", "No", "An explosive push-up with a full-twist/360 at the top");
+            insertData("Push-ups with feet on exercise ball", "Yes", "30", "40", "Arms", "Yes", "Bring your chest all the way down in between your hands\n\nkeep your body straight");
+            insertData("Push-ups with hands on exercise ball", "Yes", "30", "40", "Arms", "Yes", "Bring your chest all the way down in between your hands\n\nkeep your body straight\n\nDon't bounce your chest on the ball to get back up");
+            insertData("Maltese Push-ups", "Yes", "20", "30", "Arms", "Yes", "At the bottom of each push-up, shift your body forward and back before pushing back up");
+            insertData("Hopping Push-ups", "Yes", "30", "40", "Arms", "Yes", "Keep your body straight");
+            insertData("Walking/Spider Push-ups (12m)", "Yes", "2", "3", "Arms", "Yes", "Step forward with one arm and one leg each time you complete one push-up");
             insertData("Handstand Push-ups", "Yes", "10", "12", "Arms", "No", "Best done with a spotter or against a wall, in my opinion with your stomach towards the wall\n\nTry to keep your body straight and use your shoulders/scapula mostly");
+            insertData("Pike Push-ups", "Yes", "12", "15", "Arms", "Yes", "Pike your body so that your body, from your hands to your butt, is vertical");
             insertData("Inverted Rows", "No", "15", "12", "Arms", "Yes", "Try to have your feet just slightly lower than the bar/rings you're hanging on\n\nKeep your body straight, do not bend your hips and let your butt drop down");
+            insertData("Undergrip single arm Inverted Rows", "No", "10 Each arm", "12 Each arm", "Arms", "Yes", "If its too hard, pull yourself to the top using both arms, then lower down with one arm as controlled as you can");
             insertData("Rings Push-ups", "No", "15", "20", "Arms", "Yes", "Turn the rings out - At the top of the pushup try turn your hands so your palms face inward towards eachother\n\nKeep your body straight");
             insertData("Reverse push-ups on Rings", "No", "15", "12", "Arms", "Yes", "Rings pushups with a reverse grip - palms face forward and elbows are kept in for the entire pushup\n\nKeep your body straight");
             insertData("Archer Push-ups", "Yes", "20 [10 / side]", "24 [12 / side]", "Arms", "Yes", "Pushups with hands far apart - In each pushup keep one arm straight and pushup with the other arm\n\nIt's like you're about to fire a bow & arrow");
@@ -584,6 +647,7 @@ public class DBHelper extends SQLiteOpenHelper {
             insertData("Muscle-ups on Rings", "No", "10", "12", "Arms", "No", "Keep the rings close together when getting your shoulders on top of the rings\n\nIf you let the rings move apart too much it gets very difficult");
             insertData("Overgrip Pull-up Hold", "Yes", "45 Seconds", "2 x 30 Seconds", "Arms", "Yes", "In overgrip, keep yourself at the top of a pull-up with your chin over the bar for the duration\n\nTry to move as little as possible");
             insertData("Undergrip Pull-up Hold", "Yes", "45 Seconds", "2 x 30 Seconds", "Arms", "Yes", "In undergrip, keep yourself at the top of a pull-up with your chin over the bar for the duration\n\nTry to move as little as possible");
+            insertData("Plank/Push-up Runs", "Yes", "45 Seconds", "1 Minute", "Arms", "Yes", "Run with your legs while in a push-up position\n\nbring your knees all the way to your chest and all the way back out to straight leg");
             insertData("Rope Climb", "No", "1", "1", "Arms", "No", "Climb a rope somewhere\n\nTry to use only your arms, this of course depends on how experienced you are, you are allowed to use your legs");
             insertData("Chest Roll to Handstand", "No", "15", "20", "Arms", "No", "You want the surface you're rolling off of to drop off right under your pecks\n\nkeep the arms bent until you get your feet all the way up, then push-up to handstand\nMomentarily hold the handstand and reverse the action back to the starting position");
             insertData("Wrist Rollers", "No", "Up and Down Each Way Once", "2 Minutes Steady Pace Up and Down for", "Arms", "Yes", "This one requires a unique contraption\nBasically hang weights on a rope from some kind of pipe\nKeep rolling the pipe until all the rope is wrapped around the pipe, then slowly roll it the other way to unravel it\n\nKeep your arms straight out in front of you so that your hands are at shoulder level the entire time");
@@ -591,6 +655,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
             //Back and Shoulders Exercises (35 Total)
             insertData("Arch Hold", "Yes", "1 Minute", "1 Minute 10 Seconds", "BackAndShoulders", "Yes", "Lying on your stomach keep your arms straight up, like how superman flies\n\nKeep your arms straight and hold your hands as far off the floor as you can for the duration");
+            insertData("Handstand Gym-Bridge snap-down thingies", "Yes", "15", "20", "BackAndShoulders", "Yes", "Kic to handstand against a wall with your hands far away from the wall and push your shoulders out until you can pull your feet away bfrom the wall and back down to standing");
             insertData("Arch Rocks", "No", "40", "45", "BackAndShoulders", "Yes", "Keep your arms straight forward and your hards up off the floor\n\nKeep your feet off the floor and rock back and forth\n\nKeep your rocks small and controlled");
             insertData("Handstand Hold", "Yes", "1 Minute", "2 x 40 Seconds", "BackAndShoulders", "Yes", "Your entire body, from your hands to your feet, should be a straight line\n\nLook at the ground but trying to keep the head as forward as possible.\nSo it's like you're rolling your eyes up\n\nDo it against a wall, with a spotter, or simply on your own\n\nYou can use parallets or do it on flat ground.\nParallets will be better for your wrists");
             insertData("Single Rail Handstand Hold", "No", "45 Seconds", "2 x 30 Seconds", "BackAndShoulders", "No", "Your entire body, from your hands to your feet, should be a straight line\n\nLook at the rail but trying to keep the head as forward as possible.\nSo it's like you're rolling your eyes up\n\nDo it with a spotter helping you\n\nKeep your hands in an overgrip position");
@@ -598,6 +663,8 @@ public class DBHelper extends SQLiteOpenHelper {
             insertData("Straddle Planche Hold", "Yes", "3 x 3 Seconds", "2 x 5 Seconds", "BackAndShoulders", "No", "Keep your arms and legs straight\n\nOpen your legs as wide as you are able to, the wider you can get your legs the easier the hold will be\n\nMay or may not need a spotter");
             insertData("Planche Push-ups", "No", "12", "10", "BackAndShoulders", "Yes", "Swing the legs up until your body is flat first, then push your arms straight up to a planche\n\nCan be done straddled (Legs open and straight, easier)\nCan be done straight bodied (Legs straight and together, harder)");
             insertData("Planche Presses", "No", "10", "5 Holding Each Planche for 3 Seconds", "BackAndShoulders", "No", "Definitely need a spotter for this one\n\nKeep the arms and body straight as you can, only rotate at the shoulders");
+            insertData("Gym Bridge Hold", "Yes", "3x10 Seconds", "2 x 15 Seconds", "BackAndShoulders", "Yes", "Hold a gym bridge/Back bend");
+            insertData("Bridge Push-ups", "Yes", "15", "20", "BackAndShoulders", "Yes", "Push-ups while holding a gym bridge/Back bend");
             insertData("Presses", "No", "5", "6", "BackAndShoulders", "No", "Lift your butt all the way up first, only then start to lift your legs up until in a handstand");
             insertData("Standing Presses", "Yes", "6", "8", "BackAndShoulders", "No", "Can be done straddled (Legs straight and together, easier)\nCan be done piked (Legs together and straight, harder)\n\nStart with your hands on the floor close to your feet and your legs straight\n\nLift your butt all the way up first, only then start to lift your legs up until in a handstand");
             insertData("Endo Roll to Handstand", "No", "8", "6", "BackAndShoulders", "No", "The earlier you get your hands on the floor between your legs the easier this move is\n\nKep your legs straight and try to keep your feet off the floor the entire move");
@@ -633,9 +700,11 @@ public class DBHelper extends SQLiteOpenHelper {
             insertData("Plank Hold", "Yes", "1 Minute", "1 Minute 15 Seconds", "Core", "Yes", "Keep your entire body straight");
             insertData("Dish Hold", "Yes", "1 Minute", "45 Seconds", "Core", "Yes", "Only butt/lower back on the ground\n\nKeep your arms overhead and keep your feet very close to the floor, but not touching");
             insertData("Dish Rocks", "No", "60", "50", "Core", "Yes", "Keep your entire body tight\n\nKeep the rocks small and controlled");
+            insertData("Knee Touches", "Yes", "35", "45", "Core", "Yes", "Keep your legs straight, sit up to touch your knees then lie back down");
             insertData("Sitting Leg Lifts", "Yes", "20", "25", "Core", "Yes", "Hands on the floor next to your knees\n\nLift with yur legs straight as high as you can while keeping pressure on your hands");
             insertData("Lying Leg Lifts", "Yes", "20", "25", "Core", "Yes", "Keep your arms on the floor by your sides and keep your legs straight\n\nLift your butt off the floor at the top of each leg lift");
             insertData("Side Plank Hold", "Yes", "45 Seconds Each Side", "30 Seconds Resisted Each Side", "Core", "Yes", "Keep the body tight\n\nKeep your other arm flat by your side the entire time");
+            insertData("Side Plank Hold with leg lifted", "Yes", "40 Seconds Each Side", "45 Seconds Each Side", "Core", "Yes", "In a side plank, lift your top leg up while keeping it straight");
             insertData("Inchworm With Sliders", "No", "2 Lengths", "3 Lengths", "Core", "Yes", "Pull with arms and legs straight");
             insertData("Side Rocks", "No", "30 Each Side", "25 Each Side", "Core", "Yes", "Keep your bottom arm off te floor and use your top arm to balance yourself against the floor\n\nHold your shoulder or side to keep your bottom arm out of the way");
             insertData("Extended Plank Hold", "Yes", "30 Seconds", "40 Seconds", "Core", "Yes", "Arms and legs straight\n\nHands and feet as far apart as you can hold\n\nEars should be brushing against your arms");
@@ -651,6 +720,7 @@ public class DBHelper extends SQLiteOpenHelper {
             insertData("L-Sit Hold", "Yes", "3 x 10 Seconds", "2 x 15 Seconds", "Core", "Yes", "Legs should be at a 90 degree angle with your body\n\nDo not drop your feet below the bars");
             insertData("Reverse Sit-ups", "Yes", "25", "20", "Core", "Yes", "Keep hands on the floor by your sides and lift the butt off the floor\n\nKeep your legs straight and as close to vertical as you can the entire time");
             insertData("AbCircuit", "Yes", "2 x 8s", "10s", "Core", "Yes", "Xs AbCircuit means:\n\t-X seconds dish hold\n\t-X dish rocks\n\t-X Jack-knives\n\t-X Reverse sit-ups\n\t-X Crunches\n\t-X Crossovers\n\t-X seconds dish hold\n\nDo not rest until entire circuit is completed");
+            insertData("Grandfather Clock Exercises", "Yes", "20 Each side", "15 Each side", "Core", "Yes", "Lying on your back with your arms straight out to the side and your legs straight up\n\ndrop your legs side to side while keeping them straight");
             insertData("Side Jack-Knives", "Yes", "20 Each Side", "25 Each Side", "Core", "Yes", "Keep bottom hand on the floor and touch feet each rep with the top hand");
             insertData("Kip Extenders", "Yes", "15", "12", "Core", "Yes", "Keep the bar close to your legs the entire movement\n\nDo not bend your legs");
 
@@ -673,11 +743,13 @@ public class DBHelper extends SQLiteOpenHelper {
             insertData("Standing Front Tucks", "No", "6", "8", "Legs", "No", "Only do this as an exercise if you can safely do a standing front flip and have required safety mats and stuff to perform it\n\nUse your arms in the regular way (above the head & throw forwards)\nOr add some flair and do a russian lift (Swing your arms down and lift behind you to generate momentum for the flip)");
             insertData("Depth Jumps", "No", "8", "6", "Legs", "No", "Jump from a high surface and absorb the landing with a squat motion\nDon't jump from too high unless you have the appropriate landing mats and padding to land on");
             insertData("Weighted Lunge Walks 12m", "Yes", "3", "4", "Legs", "Yes", "8-10kg in each hand is nice\nOne large 15-20kg plate on the back works as well");
+            insertData("Duck Walks 12m", "Yes", "3", "4", "Legs", "Yes", "Walk with your legs bent as low as possible");
             insertData("Leg Extension", "No", "15", "20", "Legs", "Yes", "Do not overdo the amount of weigh tyou use for this\n\nTry holding the top of each extension just momentarily");
             insertData("Hamstring Sliders", "No", "10 Each Leg", "8 Each Leg", "Legs", "Yes", "Keep the other leg straight and out at about a 30-45 degree angle while you slide your other leg in and out\n\nDon't lie down when you slide your leg out/nKeep your butt off the floor");
             insertData("Single Leg Broad Jumps", "Yes", "10 Each Leg", "12 Each Leg", "Legs", "Yes", "Static standing jumps on one leg\nUse your other leg to swing your body up and forwards");
             insertData("Tree-Falls", "No", "10", "15", "Legs", "Yes", "Have a spotter hold your legs down if you cannot find an appropriate place to put your feet\n\nDon't stick your butt out on the way up to help yourself get up, keep your body straight and push off the floor with your arms as little as possible to get back up after lowering down");
 
+            redoRemoval(db);
             //Other Exercises (20 Total)
 //            insertData("Push-up Burpees", "Yes", "", "", "Other", "Yes", "Push up, then jump your feet between your hands, then explosively jump up, then put your hands back down and jump your feet out to push-up position and push up");
 //            insertData("Fat Mat Sprint", "No", "", "", "Other", "Yes", "Run in place on something somewhat squishy\n\nLift your knees high while running");

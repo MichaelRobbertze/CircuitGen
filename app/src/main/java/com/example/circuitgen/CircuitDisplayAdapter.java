@@ -33,7 +33,7 @@ public class CircuitDisplayAdapter extends RecyclerView.Adapter<CircuitDisplayAd
     }
 
     @Override
-    public CircuitDisplayAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
+    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.textandbutton, parent, false);
         MyViewHolder mvh = new MyViewHolder(v);
         return mvh;
@@ -61,10 +61,11 @@ public class CircuitDisplayAdapter extends RecyclerView.Adapter<CircuitDisplayAd
                     public void onClick(View v) {
                         String currentExercise = holder1.txtText.getText().toString();
                         char[] charArr = currentExercise.toCharArray();
-                        if(charArr[4] == '(')
-                            currentExercise = myDb.replaceExercise(currentExercise,true);
+//                        if(charArr[4] == '(' || charArr[5] == '(')
+                        if(myDataSet.get(0).isHIIT == 1)
+                            currentExercise = myDb.replaceExercise(pos, currentExercise,true);
                         else
-                            currentExercise = myDb.replaceExercise(currentExercise, false);
+                            currentExercise = myDb.replaceExercise(pos, currentExercise, false);
                         holder1.txtText.setText(currentExercise);
                         myDataSet.get(pos).name = currentExercise;
                         myDataSet.get(pos).isEdited = 1;

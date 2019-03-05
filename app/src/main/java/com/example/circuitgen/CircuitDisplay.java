@@ -33,6 +33,7 @@ public class CircuitDisplay extends AppCompatActivity {
     private RecyclerView.Adapter myAdapter;
     private RecyclerView.LayoutManager myLayoutManager;
     private ArrayList<CircuitHolder> myCircList;
+    int length = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +57,12 @@ public class CircuitDisplay extends AppCompatActivity {
             btnEdit.setVisibility(View.GONE);
             btnSave.setVisibility(View.GONE);
         }
+        circuitCurrent = Circuit;
+        while(circuitCurrent != null)
+        {
+            length++;
+            circuitCurrent = circuitCurrent.next;
+        }
 
 
         reView = (RecyclerView) findViewById(R.id.lstCircuitResult);
@@ -65,6 +72,17 @@ public class CircuitDisplay extends AppCompatActivity {
         createList();
         buildRecyclerView();
         editCircuit();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(Circuit.isSaved == 1)
+        {
+            Intent intent = new Intent(getApplicationContext(), ListOfSaved.class);
+            startActivity(intent);
+        }
+        else
+            super.onBackPressed();
     }
 
     public void createList(){
@@ -85,21 +103,21 @@ public class CircuitDisplay extends AppCompatActivity {
     }
 
 
-    @Override
-    public void onRestart()
-    {
-        super.onRestart();
-        Intent intent = new Intent(getApplicationContext(),OptionsActivity.class);
-        startActivity(intent);
-    }
-
-        @Override
-        public void onBackPressed ()
-        {
-            super.onBackPressed();
-            Intent intent = new Intent(getApplicationContext(), OptionsActivity.class);
-            startActivity(intent);
-        }
+//    @Override
+//    public void onRestart()
+//    {
+//        super.onRestart();
+//        Intent intent = new Intent(getApplicationContext(),OptionsActivity.class);
+//        startActivity(intent);
+//    }
+//
+//        @Override
+//        public void onBackPressed ()
+//        {
+//            super.onBackPressed();
+//            Intent intent = new Intent(getApplicationContext(), OptionsActivity.class);
+//            startActivity(intent);
+//        }
 
         public void DeleteCircuit ()
         {
@@ -207,6 +225,7 @@ public class CircuitDisplay extends AppCompatActivity {
                             Intent intent = new Intent(getApplicationContext(), CircuitEditor.class);
                             intent.putExtra("CircuitToEdit", Circuit);
                             intent.putExtra("Number", 0);
+                            intent.putExtra("Length", length);
                             startActivity(intent);
                         }
                     }
